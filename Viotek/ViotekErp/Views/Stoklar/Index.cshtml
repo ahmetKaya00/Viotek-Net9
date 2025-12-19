@@ -1,0 +1,355 @@
+@model ViotekErp.Models.StokListViewModel
+
+@{
+    Layout = "_ErpLayout";
+    ViewData["Title"] = "Stok Yönetimi";
+}
+
+<style>
+    /* Tailwind breakpointlerinden bağımsız kesin çözüm */
+    .stok-cards { display: none; }   /* default: web */
+    .stok-table { display: block; }  /* default: web */
+
+    @@media (max-width: 640px) {
+        .stok-cards { display: block; }
+        .stok-table { display: none; }
+    }
+</style>
+
+<div class="min-h-[calc(100vh-64px)] bg-slate-50 px-6 py-6">
+
+    <!-- Başlık + Özetler -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-900">Stok Yönetimi</h1>
+            <p class="text-sm text-slate-500 mt-1">
+                VW_STOK_MEVCUT ve STOKLAR tablosuna göre stokların özet listesi.
+            </p>
+        </div>
+
+        <div class="flex flex-col items-end gap-1 text-right text-xs">
+            <div class="px-3 py-2 rounded-xl bg-white border border-slate-200 shadow-sm">
+                <p class="text-slate-500">Listelenen Ürün Sayısı</p>
+                <p class="font-semibold text-slate-800">
+                    @Model.TotalCount
+                </p>
+            </div>
+            <div class="px-3 py-2 rounded-xl bg-white border border-slate-200 shadow-sm">
+                <p class="text-slate-500">Toplam Mevcut Miktar (filtreli)</p>
+                <p class="font-semibold text-slate-800">
+                    @Model.TotalMevcut.ToString("N2")
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtreler -->
+    <form method="get"
+          class="bg-white rounded-2xl shadow-sm border border-slate-100 px-4 py-4 mb-4 flex flex-col md:flex-row md:items-end gap-4">
+
+        <div class="flex-1">
+            <label class="block text-xs font-medium text-slate-600 mb-1">
+                Arama (kod / ad / marka / kategori)
+            </label>
+            <input type="text"
+                   name="search"
+                   value="@Model.Search"
+                   class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                   placeholder="Örn: KABLO, SAMSUNG, KAT-01 ..." />
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">
+                En az stok miktarı
+            </label>
+            <input type="number"
+                   step="0.01"
+                   name="minMiktar"
+                   value="@(Model.MinMiktar?.ToString().Replace(',', '.') ?? "")"
+                   class="w-36 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+        </div>
+
+        <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">
+                Sayfa Başına Kayıt
+            </label>
+            <select name="pageSize"
+                    class="w-32 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="10" selected="@(Model.PageSize == 10 ? "selected" : null)">10</option>
+                <option value="25" selected="@(Model.PageSize == 25 ? "selected" : null)">25</option>
+                <option value="50" selected="@(Model.PageSize == 50 ? "selected" : null)">50</option>
+            </select>
+        </div>
+
+        <div class="flex gap-2">
+            <button type="submit"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium shadow-sm hover:bg-indigo-700 transition">
+                <span class="material-symbols-outlined text-base">search</span>
+                <span>Filtrele</span>
+            </button>
+
+            <a asp-action="Index"
+               class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-medium hover:bg-slate-200 transition">
+                Temizle
+            </a>
+        </div>
+    </form>
+
+    <!-- Liste Alanı -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+
+        <!-- ✅ MOBİL: Kart Liste -->
+        <div class="stok-cards p-3">
+            @if (Model.Items != null && Model.Items.Any())
+            {
+                <div class="flex flex-col gap-3">
+                    @foreach (var item in Model.Items)
+                    {
+                        <div class="rounded-2xl border border-slate-100 bg-white shadow-sm p-3">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <div class="text-[11px] text-slate-500">Stok</div>
+                                    <div class="text-sm font-semibold text-slate-900 break-words">
+                                        @item.StokIsim
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 font-mono mt-1">
+                                        @item.StokKod
+                                    </div>
+                                </div>
+
+                                <div class="shrink-0 text-right">
+                                    <div class="text-[11px] text-slate-500">Mevcut</div>
+                                    <div class="text-sm font-semibold text-slate-900">
+                                        @item.MevcutMiktar.ToString("N2")
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 grid grid-cols-2 gap-2">
+                                <div class="rounded-xl bg-slate-50 border border-slate-100 p-2">
+                                    <div class="text-[11px] text-slate-500">Kategori</div>
+                                    <div class="text-xs font-semibold text-slate-900 break-words">
+                                        @(string.IsNullOrWhiteSpace(item.KategoriKodu) ? "-" : item.KategoriKodu)
+                                    </div>
+                                </div>
+
+                                <div class="rounded-xl bg-slate-50 border border-slate-100 p-2">
+                                    <div class="text-[11px] text-slate-500">Marka</div>
+                                    <div class="text-xs font-semibold text-slate-900 break-words">
+                                        @(string.IsNullOrWhiteSpace(item.MarkaKodu) ? "-" : item.MarkaKodu)
+                                    </div>
+                                </div>
+
+                                <div class="rounded-xl bg-slate-50 border border-slate-100 p-2">
+                                    <div class="text-[11px] text-slate-500">Son Hareket</div>
+                                    <div class="text-xs font-semibold text-slate-900">
+                                        @(item.SonHareketTarihi?.ToString("dd.MM.yyyy") ?? "-")
+                                    </div>
+                                </div>
+
+                                <div class="rounded-xl bg-slate-50 border border-slate-100 p-2">
+                                    <div class="text-[11px] text-slate-500">Son Fiyat</div>
+                                    <div class="text-xs font-semibold text-emerald-700">
+                                        @(item.SonSatisFiyati.HasValue ? item.SonSatisFiyati.Value.ToString("N2") : "-")
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 flex justify-end">
+                                <button type="button"
+                                        class="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-slate-200 text-xs font-medium text-slate-900 hover:bg-slate-50"
+                                        data-stok="@item.StokKod"
+                                        onclick="openStokDetay(this)">
+                                    <span class="material-symbols-outlined text-[16px]">visibility</span>
+                                    <span>Detay</span>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="px-4 py-10 text-center text-slate-400 text-xs">
+                    Kriterlere uygun stok kaydı bulunamadı.
+                </div>
+            }
+        </div>
+
+        <!-- ✅ WEB: Tablo (webde aynı kalsın) -->
+        <div class="stok-table">
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-left text-xs">
+                    <thead class="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                            <th class="px-4 py-3 font-semibold text-slate-500">Stok Kodu</th>
+                            <th class="px-4 py-3 font-semibold text-slate-500">Stok Adı</th>
+                            <th class="px-4 py-3 font-semibold text-slate-500">Kategori</th>
+                            <th class="px-4 py-3 font-semibold text-slate-500">Marka</th>
+                            <th class="px-4 py-3 font-semibold text-slate-500 text-right">Mevcut Miktar</th>
+                            <th class="px-4 py-3 font-semibold text-slate-500">Son Hareket Tarihi</th>
+                            <th class="px-4 py-3 font-semibold text-slate-500 text-right">Son Fiyat (birim)</th>
+                            <th class="px-4 py-3 font-semibold text-slate-500 text-right">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Items != null && Model.Items.Any())
+                        {
+                            foreach (var item in Model.Items)
+                            {
+                                <tr class="border-b border-slate-50 hover:bg-slate-50/60 text-[11px]">
+                                    <td class="px-4 py-2 whitespace-nowrap font-mono text-[11px]">
+                                        @item.StokKod
+                                    </td>
+                                    <td class="px-4 py-2 whitespace-nowrap">
+                                        @item.StokIsim
+                                    </td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-slate-500">
+                                        @item.KategoriKodu
+                                    </td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-slate-500">
+                                        @item.MarkaKodu
+                                    </td>
+                                    <td class="px-4 py-2 text-right whitespace-nowrap font-semibold">
+                                        @item.MevcutMiktar.ToString("N2")
+                                    </td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-slate-500">
+                                        @(item.SonHareketTarihi?.ToString("dd.MM.yyyy") ?? "-")
+                                    </td>
+                                    <td class="px-4 py-2 text-right whitespace-nowrap text-emerald-700">
+                                        @(item.SonSatisFiyati.HasValue ? item.SonSatisFiyati.Value.ToString("N2") + " " : "-")
+                                    </td>
+                                    <td class="px-4 py-2 text-right whitespace-nowrap">
+                                        <button type="button"
+                                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-900 text-white text-[11px] hover:bg-slate-700"
+                                                data-stok="@item.StokKod"
+                                                onclick="openStokDetay(this)">
+                                            <span class="material-symbols-outlined text-[14px]">visibility</span>
+                                            <span>Detay</span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="px-4 py-6 text-center text-slate-400 text-xs">
+                                    Kriterlere uygun stok kaydı bulunamadı.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Sayfalama -->
+            @if (Model.TotalPages > 1)
+            {
+                <div class="flex items-center justify-between px-4 py-3 border-t border-slate-100 bg-slate-50 text-[11px]">
+                    <div class="text-slate-500">
+                        Sayfa @Model.Page / @Model.TotalPages
+                    </div>
+
+                    <div class="flex items-center gap-1">
+                        @if (Model.Page > 1)
+                        {
+                            <a asp-action="Index"
+                               asp-route-page="@(Model.Page - 1)"
+                               asp-route-pageSize="@Model.PageSize"
+                               asp-route-search="@Model.Search"
+                               asp-route-minMiktar="@Model.MinMiktar"
+                               class="px-2 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-100">
+                                ‹ Önceki
+                            </a>
+                        }
+
+                        @if (Model.Page < Model.TotalPages)
+                        {
+                            <a asp-action="Index"
+                               asp-route-page="@(Model.Page + 1)"
+                               asp-route-pageSize="@Model.PageSize"
+                               asp-route-search="@Model.Search"
+                               asp-route-minMiktar="@Model.MinMiktar"
+                               class="px-2 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-100">
+                                Sonraki ›
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Detay Modal -->
+<div id="stokDetayModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[80vh] flex flex-col">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+            <div>
+                <h2 class="text-base font-semibold text-slate-900">
+                    Stok Detayı
+                </h2>
+                <p id="stokDetayHeader" class="text-[11px] text-slate-500">
+                    Stok bilgileri ve son 50 hareket.
+                </p>
+            </div>
+            <button type="button"
+                    onclick="closeStokDetay()"
+                    class="rounded-full w-8 h-8 flex items-center justify-center hover:bg-slate-100">
+                ✕
+            </button>
+        </div>
+
+        <div id="stokDetayBody" class="p-4 overflow-auto text-xs">
+            <div class="text-center text-slate-400 text-xs">
+                Yükleniyor...
+            </div>
+        </div>
+
+        <div class="px-5 py-3 border-t border-slate-100 flex justify-end">
+            <button type="button"
+                    onclick="closeStokDetay()"
+                    class="px-4 py-1.5 rounded-xl bg-slate-900 text-white text-xs hover:bg-slate-700">
+                Kapat
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openStokDetay(btn) {
+            const stokKod = btn.getAttribute("data-stok");
+            const modal = document.getElementById("stokDetayModal");
+            const body = document.getElementById("stokDetayBody");
+            const header = document.getElementById("stokDetayHeader");
+
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+
+            body.innerHTML = '<div class="text-center text-slate-400 text-xs py-4">Yükleniyor...</div>';
+            header.textContent = "Stok: " + stokKod + " için detay yükleniyor...";
+
+            fetch(`/Stoklar/DetayPartial?stokKod=${encodeURIComponent(stokKod)}`)
+                .then(r => {
+                    if (!r.ok) throw new Error("Detay yüklenemedi");
+                    return r.text();
+                })
+                .then(html => {
+                    body.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error(err);
+                    body.innerHTML = '<div class="text-center text-red-500 text-xs py-4">Detay yüklenirken hata oluştu.</div>';
+                });
+        }
+
+        function closeStokDetay() {
+            const modal = document.getElementById("stokDetayModal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
+    </script>
+}

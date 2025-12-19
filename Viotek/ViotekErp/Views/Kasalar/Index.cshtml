@@ -1,0 +1,131 @@
+@model ViotekErp.Models.KasalarViewModel
+
+@{
+    Layout = "_ErpLayout";
+    ViewData["Title"] = "Kasalar";
+}
+
+<div class="min-h-[calc(100vh-64px)] bg-slate-50 px-4 md:px-6 py-6">
+    <div class="max-w-7xl mx-auto space-y-6">
+
+        <!-- Header -->
+        <div class="rounded-3xl border border-slate-100 bg-white/80 backdrop-blur shadow-sm">
+            <div class="p-5 md:p-6">
+                <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+                            Kasalar
+                        </h1>
+                        <p class="text-xs md:text-sm text-slate-500 mt-1">
+                            KASALAR_YONETIM view’ine göre kasa bakiyeleri (anlık).
+                        </p>
+                    </div>
+
+                    <!-- Özetler: md+ yan yana 3 -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 w-full lg:w-[720px]">
+                        <div class="rounded-2xl border border-slate-100 bg-white shadow-sm p-4">
+                            <div class="text-[11px] text-slate-500">Kasa Sayısı</div>
+                            <div class="mt-1 text-lg font-semibold text-slate-900">
+                                @(Model.Items?.Count ?? 0)
+                            </div>
+                        </div>
+
+                        <div class="rounded-2xl border border-indigo-100 bg-indigo-50/60 shadow-sm p-4">
+                            <div class="text-[11px] text-indigo-700">Toplam Ana Bakiye</div>
+                            <div class="mt-1 text-lg font-semibold text-indigo-700">
+                                @Model.ToplamAna.ToString("N2")
+                            </div>
+                        </div>
+
+                        <div class="rounded-2xl border border-slate-100 bg-white shadow-sm p-4">
+                            <div class="text-[11px] text-slate-500">Toplam Orijinal</div>
+                            <div class="mt-1 text-lg font-semibold text-slate-900">
+                                @Model.ToplamOrjinal.ToString("N2")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arama bar -->
+                <div class="mt-5">
+                    <form method="get" class="flex flex-col md:flex-row gap-3 md:items-end">
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Arama</label>
+
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔎</span>
+                                <input type="text"
+                                       name="search"
+                                       value="@(Model.Search ?? "")"
+                                       placeholder="Kasa kodu, kasa adı veya döviz (TL, USD...)"
+                                       class="w-full rounded-2xl border border-slate-200 bg-white px-10 py-3 text-sm
+                                              shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button type="submit"
+                                    class="inline-flex items-center justify-center px-5 py-3 rounded-2xl
+                                           bg-indigo-600 text-white text-sm font-semibold shadow-sm
+                                           hover:bg-indigo-700 transition">
+                                Filtrele
+                            </button>
+
+                            <a asp-action="Index"
+                               class="inline-flex items-center justify-center px-5 py-3 rounded-2xl
+                                      bg-slate-100 text-slate-700 text-sm font-semibold
+                                      hover:bg-slate-200 transition">
+                                Temizle
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kasalar: lg+ tek satırda 3 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            @if (Model.Items != null && Model.Items.Any())
+            {
+                foreach (var k in Model.Items)
+                {
+                    var ana = (k.AnaDovizBakiye ?? 0d);
+                    var doviz = string.IsNullOrWhiteSpace(k.Doviz) ? "-" : k.Doviz.Trim();
+
+                    <div class="rounded-3xl border border-slate-100 bg-white shadow-sm hover:shadow-md transition">
+                        <div class="p-6">
+
+                            <!-- Kasa Adı -->
+                            <div class="text-lg font-semibold text-slate-900 leading-snug line-clamp-2">
+                                @k.KasaAdi
+                            </div>
+
+                            <!-- Döviz Türü -->
+                            <div class="mt-2 text-sm text-slate-500">
+                                Döviz: <span class="font-semibold text-slate-700 uppercase">@doviz</span>
+                            </div>
+
+                            <!-- Kasadaki Para -->
+                            <div class="mt-4">
+                                <div class="text-xs text-slate-500">Kasadaki Para</div>
+                                <div class="mt-1 text-3xl font-bold text-slate-900 tracking-tight">
+                                    @ana.ToString("N2")
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="h-1 bg-gradient-to-r from-indigo-200 via-slate-100 to-indigo-200"></div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-span-full rounded-3xl border border-slate-100 bg-white p-10 text-center">
+                    <div class="text-slate-400 text-sm">Kriterlere uygun kasa bulunamadı.</div>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>

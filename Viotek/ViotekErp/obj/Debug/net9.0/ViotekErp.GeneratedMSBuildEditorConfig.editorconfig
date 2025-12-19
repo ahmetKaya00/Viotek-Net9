@@ -1,0 +1,97 @@
+is_global = true
+build_property.TargetFramework = net9.0
+build_property.TargetFramework = net9.0
+build_property.TargetPlatformMinVersion = 
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = ViotekErp
+build_property.RootNamespace = ViotekErp
+build_property.ProjectDir = /Users/ahmetkaya/Downloads/Viotek/ViotekErp/
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 9.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = true
+build_property.MSBuildProjectDirectory = /Users/ahmetkaya/Downloads/Viotek/ViotekErp
+build_property._RazorSourceGeneratorDebug = 
+build_property.EffectiveAnalysisLevelStyle = 9.0
+build_property.EnableCodeStyleSeverity = 
+
+[/Users/ahmetkaya/Downloads/Viotek/ViotekErp/Views/Dashboard/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvRGFzaGJvYXJkL0luZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ahmetkaya/Downloads/Viotek/ViotekErp/Views/Gider/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvR2lkZXIvSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ahmetkaya/Downloads/Viotek/ViotekErp/Views/Home/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ahmetkaya/Downloads/Viotek/ViotekErp/Views/Home/Privacy.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9Qcml2YWN5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ahmetkaya/Downloads/Viotek/ViotekErp/Views/Irsaliyeler/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSXJzYWxpeWVsZXIvSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ahmetkaya/Downloads/Viotek/ViotekErp/Views/Kasalar/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvS2FzYWxhci9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ahmetkaya/Downloads/Viotek/ViotekErp/Views/Raporlar/SatisAnaliz.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUmFwb3JsYXIvU2F0aXNBbmFsaXouY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ahmetkaya/Downloads/Viotek/ViotekErp/Views/Shared/Error.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL0Vycm9yLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ahmetkaya/Downloads/Viotek/ViotekErp/Views/Shared/_ErpLayout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19FcnBMYXlvdXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ahmetkaya/Downloads/Viotek/ViotekErp/Views/Shared/_ValidationScriptsPartial.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ahmetkaya/Downloads/Viotek/ViotekErp/Views/Siparisler/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2lwYXJpc2xlci9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ahmetkaya/Downloads/Viotek/ViotekErp/Views/Siparisler/_DetayPartial.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2lwYXJpc2xlci9fRGV0YXlQYXJ0aWFsLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ahmetkaya/Downloads/Viotek/ViotekErp/Views/Stoklar/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU3Rva2xhci9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ahmetkaya/Downloads/Viotek/ViotekErp/Views/Stoklar/_DetayPartial.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU3Rva2xhci9fRGV0YXlQYXJ0aWFsLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ahmetkaya/Downloads/Viotek/ViotekErp/Views/_ViewImports.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvX1ZpZXdJbXBvcnRzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ahmetkaya/Downloads/Viotek/ViotekErp/Views/_ViewStart.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvX1ZpZXdTdGFydC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ahmetkaya/Downloads/Viotek/ViotekErp/Views/Shared/_Layout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19MYXlvdXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = b-xqv8yyvei5
