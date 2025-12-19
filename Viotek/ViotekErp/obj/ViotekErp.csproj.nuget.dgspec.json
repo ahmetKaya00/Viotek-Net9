@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/ahmetkaya/Downloads/Viotek/ViotekErp/ViotekErp.csproj": {}
+    "/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/ViotekErp.csproj": {}
   },
   "projects": {
-    "/Users/ahmetkaya/Downloads/Viotek/ViotekErp/ViotekErp.csproj": {
+    "/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/ViotekErp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/ahmetkaya/Downloads/Viotek/ViotekErp/ViotekErp.csproj",
+        "projectUniqueName": "/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/ViotekErp.csproj",
         "projectName": "ViotekErp",
-        "projectPath": "/Users/ahmetkaya/Downloads/Viotek/ViotekErp/ViotekErp.csproj",
+        "projectPath": "/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/ViotekErp.csproj",
         "packagesPath": "/Users/ahmetkaya/.nuget/packages/",
-        "outputPath": "/Users/ahmetkaya/Downloads/Viotek/ViotekErp/obj/",
+        "outputPath": "/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/ahmetkaya/.nuget/NuGet/NuGet.Config"
