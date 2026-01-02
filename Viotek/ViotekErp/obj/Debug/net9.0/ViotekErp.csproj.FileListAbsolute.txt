@@ -1629,3 +1629,11 @@ C:/Users/Kaya3/Desktop/Viotek/ViotekErp/obj/Debug/net9.0/ref/ViotekErp.dll
 /Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/bin/Debug/net9.0/publish/ViotekErp.deps.json
 /Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/bin/Debug/net9.0/publish/ViotekErp.runtimeconfig.json
 /Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/bin/Debug/net9.0/publish/ViotekErp.staticwebassets.endpoints.json
+/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/bin/Debug/net9.0/publish/publish/web.config
+/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/bin/Debug/net9.0/publish/publish/appsettings.Development.json
+/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/bin/Debug/net9.0/publish/publish/appsettings.json
+/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/bin/Debug/net9.0/publish/publish/package-lock.json
+/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/bin/Debug/net9.0/publish/publish/package.json
+/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/bin/Debug/net9.0/publish/publish/ViotekErp.deps.json
+/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/bin/Debug/net9.0/publish/publish/ViotekErp.runtimeconfig.json
+/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/bin/Debug/net9.0/publish/publish/ViotekErp.staticwebassets.endpoints.json

@@ -174,16 +174,26 @@
         document.body.classList.remove("overflow-hidden");
     }
     function setModalHtmlAndRunScripts(html) {
-        modalBody.innerHTML = html;
-        const scripts = modalBody.querySelectorAll("script");
-        scripts.forEach(old => {
-            const s = document.createElement("script");
-            if (old.src) s.src = old.src;
-            else s.textContent = old.textContent || "";
-            document.body.appendChild(s);
-            old.remove();
-        });
+  modalBody.innerHTML = html;
+
+  // innerHTML ile gelen scriptler çalışmaz -> manuel çalıştırıyoruz
+  const scripts = Array.from(modalBody.querySelectorAll("script"));
+  scripts.forEach(old => {
+    const s = document.createElement("script");
+    if (old.src) {
+      s.src = old.src;
+    } else {
+      s.textContent = old.textContent || "";
     }
+    document.body.appendChild(s);
+    old.remove();
+  });
+
+  // ✅ Modal partial kendi init fonksiyonunu expose ederse burada çağır
+  if (window.initServisEditModal) {
+    window.initServisEditModal();
+  }
+}
 
     modalClose.addEventListener("click", closeModal);
     modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });

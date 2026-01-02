@@ -21,6 +21,8 @@ builder.Services.AddScoped<ErpAuthService>();
 // DB
 builder.Services.AddDbContext<MikroDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MikroDb")));
+builder.Services.AddDbContext<ServisDbContext>(opt =>
+    opt.UseSqlServer(builder.Configuration.GetConnectionString("ServisDb")));
 
 // MVC
 builder.Services.AddControllersWithViews()

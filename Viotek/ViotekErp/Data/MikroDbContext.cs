@@ -35,6 +35,7 @@ namespace ViotekErp.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            
             modelBuilder.Entity<KasaYonetimRow>(entity =>
             {
                 entity.ToView("KASALAR_YONETIM");

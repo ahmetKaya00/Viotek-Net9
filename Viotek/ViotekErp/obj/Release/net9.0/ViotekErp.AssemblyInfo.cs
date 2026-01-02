@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ViotekErp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+51144218e69873601cf3c98de2b18c3cd5ad2abe")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+89ded588ec7bce170dfde5016d610894445c297b")]
 [assembly: System.Reflection.AssemblyProductAttribute("ViotekErp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ViotekErp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

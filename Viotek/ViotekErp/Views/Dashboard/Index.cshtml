@@ -87,6 +87,19 @@
         .dash-cards { display: block; }
         .dash-table { display: none; }
     }
+  .svc-kpi-grid{
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 1rem;
+  }
+
+  /* İstersen mobilde alt alta kalsın */
+  @@media (max-width: 640px){
+    .svc-kpi-grid{
+      grid-template-columns: 1fr !important;
+    }
+  }
+
 </style>
 
 <div class="min-h-[calc(100vh-64px)] bg-slate-50 px-6 py-6">
@@ -279,8 +292,7 @@
     </div>
 
     <!-- ✅ SERVİS KARTLARI: GRAFİĞİN ALTINDA ve 5'Lİ YAN YANA -->
-    <div class="grid grid-cols-5 gap-4 mb-6">
-
+<div class="svc-kpi-grid mb-6">
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 px-4 py-4 flex items-center justify-between">
             <div>
                 <p class="text-[10px] font-semibold tracking-[0.15em] text-slate-500 uppercase">AÇILAN</p>
