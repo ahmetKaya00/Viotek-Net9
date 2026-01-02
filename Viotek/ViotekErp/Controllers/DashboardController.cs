@@ -110,7 +110,26 @@ namespace ViotekErp.Controllers
 
             model.FilterStartDate = rangeStart;
             model.FilterEndDate = rangeEnd;
+  // ===========================
+// ✅ Servis Durum Sayıları (Dashboard kartları için)
+// ===========================
+var servisAcilan = await _db.Servisler.AsNoTracking()
+    .CountAsync(x => (x.ServisAktif ?? true) == true && (x.ServisDurum ?? 1) == 1);
 
+var servisTedarikcide = await _db.Servisler.AsNoTracking()
+    .CountAsync(x => (x.ServisAktif ?? true) == true && (x.ServisDurum ?? 1) == 2);
+
+var servisTedarikcidenGelen = await _db.Servisler.AsNoTracking()
+    .CountAsync(x => (x.ServisAktif ?? true) == true && (x.ServisDurum ?? 1) == 3);
+
+var servisTeslimEdilen = await _db.Servisler.AsNoTracking()
+    .CountAsync(x => (x.ServisAktif ?? true) == true && (x.ServisDurum ?? 1) == 4);
+
+ViewBag.ServisAcilanCount = servisAcilan;
+ViewBag.ServisTedarikcideCount = servisTedarikcide;
+ViewBag.ServisTedarikcidenGelenCount = servisTedarikcidenGelen;
+ViewBag.ServisTeslimEdilenCount = servisTeslimEdilen;
+ViewBag.ServisTotalCount = servisAcilan + servisTedarikcide + servisTedarikcidenGelen + servisTeslimEdilen;
             // ✅ İhtiyaç duyduğumuz alanları çek
             var allRows = await baseQuery
                 .Select(s => new SiparisCalcRow
@@ -160,6 +179,20 @@ namespace ViotekErp.Controllers
 
                 return netDoviz * kur;
             }
+            double NetTutarDoviz(SiparisCalcRow x)
+{
+    double brut = x.Tutar ?? 0;
+
+    double iskTutar =
+        (x.Iskonto1 ?? 0) +
+        (x.Iskonto2 ?? 0) +
+        (x.Iskonto3 ?? 0) +
+        (x.Iskonto4 ?? 0) +
+        (x.Iskonto5 ?? 0) +
+        (x.Iskonto6 ?? 0);
+
+    return brut - iskTutar; // döviz cinsinden net
+}
 
             // --------------------------
             // GENEL (tüm zamanlar)
@@ -183,6 +216,11 @@ namespace ViotekErp.Controllers
 
             // Kart: Toplam satış (seçilen dönem)
             model.MonthlySalesTotal = rangeRows.Sum(NetTutarTL);
+            const byte USD_CODE = 1; // sizde USD farklıysa değiştir
+
+model.MonthlySalesTotalUsd = rangeRows
+    .Where(x => (x.DovizCinsi ?? (byte)0) == USD_CODE)
+    .Sum(NetTutarDoviz);
 
             // Kart: Bugünkü sipariş sayısı (refDate günü)
             // İstersen "evrak bazında" sayalım:

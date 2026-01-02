@@ -1,8 +1,16 @@
 /Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/publish/ViotekErp
+/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/publish/publish/web.config
 /Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/publish/appsettings.Development.json
 /Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/publish/appsettings.json
 /Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/publish/package-lock.json
 /Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/publish/package.json
+/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/publish/publish/appsettings.Development.json
+/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/publish/publish/appsettings.json
+/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/publish/publish/package-lock.json
+/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/publish/publish/package.json
+/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/publish/publish/ViotekErp.deps.json
+/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/publish/publish/ViotekErp.runtimeconfig.json
+/Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/publish/publish/ViotekErp.staticwebassets.endpoints.json
 /Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/publish/refs/Microsoft.AspNetCore.Antiforgery.dll
 /Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/publish/refs/Microsoft.AspNetCore.Authentication.Abstractions.dll
 /Users/ahmetkaya/Documents/GitHub/Viotek-Net9/Viotek/ViotekErp/publish/refs/Microsoft.AspNetCore.Authentication.BearerToken.dll

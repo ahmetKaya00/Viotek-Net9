@@ -24,14 +24,17 @@ namespace ViotekErp.Data
         // 🔹 Finans için satış özeti view’i
         public DbSet<SalesSummaryView> SalesSummaries { get; set; }  // VW_SATIS_OZET
         public DbSet<SorumluAd> SorumluAdlari { get; set; }
+        public DbSet<erp_kullanici> erp_kullanici => Set<erp_kullanici>();
+
         public DbSet<StokAdi> StokAdlari { get; set; }
+        public DbSet<TblServis> Servisler { get; set; } = default!;
+
         public DbSet<GiderHareket> GiderHareketler { get; set; } = null!;
                 public DbSet<KasaYonetimRow> KasalarYonetim => Set<KasaYonetimRow>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<KasaYonetimRow>(entity =>
             {
                 entity.ToView("KASALAR_YONETIM");
@@ -69,6 +72,13 @@ namespace ViotekErp.Data
         e.Property(x => x.MsgS1165).HasColumnName("msg_S_1165");
         e.Property(x => x.MsgS1166).HasColumnName("msg_S_1166");
     });
+    modelBuilder.Entity<erp_kullanici>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.HasIndex(x => x.KullaniciAdi).IsUnique();
+                e.Property(x => x.Rol).HasDefaultValue("User");
+                e.Property(x => x.AktifMi).HasDefaultValue(true);
+            });
 
             modelBuilder.Entity<SorumluAd>()
                         .HasNoKey()

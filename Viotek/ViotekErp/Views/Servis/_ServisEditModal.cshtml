@@ -1,0 +1,695 @@
+@model ViotekErp.Models.ServisEditVm
+@using ViotekErp.Models
+@using System.Globalization
+
+@{
+    var tr = CultureInfo.GetCultureInfo("tr-TR");
+
+    string DateVal(DateTime? d) => d.HasValue ? d.Value.ToString("yyyy-MM-dd") : "";
+    string DurumText(byte? d) => d switch
+    {
+        1 => "Servis Kaydı Yapıldı",
+        2 => "Tedarikçiye Gönderildi",
+        3 => "Tedarikçiden Geldi",
+        4 => "Müşteriye Teslim Edildi",
+        _ => "Bilinmiyor"
+    };
+
+    var isNew = Model.Item?.ServisId == 0;
+    var durum = Model.Item?.ServisDurum ?? (byte)1;
+    var aktif = (Model.Item?.ServisAktif ?? true) == true;
+
+    // garanti var/yok: ay değeri varsa var kabul edelim
+    var garantiAy = Model.Item?.ServisGaranti;
+    var garantiVar = garantiAy.HasValue && garantiAy.Value > 0;
+}
+
+<style>
+    .svc-grid-label { font-size: 11px; font-weight: 700; color: rgb(71 85 105); margin-bottom: 4px; display:block; }
+
+    .svc-input{
+        width:100%;
+        border-radius:12px;
+        border:1px solid rgb(226 232 240);
+        padding:10px 12px;
+        font-size:13px;
+        outline:none;
+        background:white;
+    }
+    .svc-input:focus{
+        border-color: rgb(99 102 241);
+        box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+    }
+
+    .svc-btn{
+        display:inline-flex; align-items:center; justify-content:center;
+        border-radius:12px; padding:10px 14px; font-size:13px; font-weight:700;
+        border:1px solid transparent; transition:.15s ease;
+        white-space:nowrap;
+    }
+    .svc-btn-primary{ background:rgb(79 70 229); color:white; }
+    .svc-btn-primary:hover{ background:rgb(67 56 202); }
+    .svc-btn-soft{ background:white; border-color:rgb(226 232 240); color:rgb(51 65 85); }
+    .svc-btn-soft:hover{ background:rgb(248 250 252); }
+
+    .svc-badge{
+        display:inline-flex; align-items:center; gap:8px;
+        padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700;
+        border:1px solid rgb(226 232 240); background:white; color:rgb(51 65 85);
+        max-width:100%;
+    }
+
+    /* Autocomplete */
+    .svc-ac-wrap{ position:relative; }
+    .svc-ac-panel{
+        position:absolute;
+        left:0; right:0;
+        top: calc(100% + 6px);
+        background:white;
+        border:1px solid rgb(226 232 240);
+        border-radius:14px;
+        box-shadow: 0 10px 25px rgba(15,23,42,.08);
+        overflow:hidden;
+        z-index: 9999;
+        max-height: 260px;
+        overflow-y:auto;
+        display:none;
+    }
+    .svc-ac-item{
+        padding:10px 12px;
+        cursor:pointer;
+        font-size:12px;
+        border-bottom:1px solid rgb(241 245 249);
+    }
+    .svc-ac-item:last-child{ border-bottom:none; }
+    .svc-ac-item:hover{ background: rgb(248 250 252); }
+    .svc-ac-item.active{ background: rgb(238 242 255); }
+
+    .svc-ac-title{ font-weight:800; color: rgb(15 23 42); }
+    .svc-ac-sub{ font-size:11px; color: rgb(100 116 139); margin-top:2px; }
+
+    /* Toggle */
+    .svc-toggle{
+        display:flex; gap:8px; align-items:center;
+        padding:6px;
+        background:white;
+        border:1px solid rgb(226 232 240);
+        border-radius:14px;
+        width:fit-content;
+    }
+    .svc-toggle button{
+        border:none;
+        padding:8px 10px;
+        border-radius:10px;
+        font-size:12px;
+        font-weight:800;
+        cursor:pointer;
+        background:transparent;
+        color: rgb(71 85 105);
+    }
+    .svc-toggle button.active{
+        background: rgb(79 70 229);
+        color:white;
+    }
+
+    /* küçük ekranlarda butonlar taşmasın */
+    @@media (max-width: 640px){
+        .svc-header-actions{ flex-direction:column; align-items:stretch; }
+        .svc-header-actions .svc-btn{ width:100%; }
+    }
+</style>
+
+<div class="space-y-4">
+
+    <!-- ÜST ÖZET -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="space-y-1 min-w-0">
+            <div class="text-xs text-slate-500">Kayıt</div>
+            <div class="text-base font-extrabold text-slate-900">
+                @(isNew ? "Yeni Servis Kaydı" : $"Servis #{Model.Item.ServisId}")
+            </div>
+            <div class="flex flex-wrap gap-2 items-center">
+                <span class="svc-badge">Durum: @DurumText(Model.Item.ServisDurum)</span>
+                <span class="svc-badge">Aktif: @(aktif ? "Evet" : "Hayır")</span>
+                <span class="svc-badge">
+                    Giren:
+                    <span class="truncate">
+                        @(string.IsNullOrWhiteSpace(Model.CurrentSipSaticiAd) ? "-" : Model.CurrentSipSaticiAd)
+                        @(string.IsNullOrWhiteSpace(Model.CurrentSipSaticiKod) ? "" : $"({Model.CurrentSipSaticiKod})")
+                    </span>
+                </span>
+            </div>
+        </div>
+
+        <div class="flex gap-2 svc-header-actions">
+            <button type="button" id="svcSaveBtn" class="svc-btn svc-btn-primary">Kaydet</button>
+            <button type="button" id="svcSaveCloseBtn" class="svc-btn svc-btn-soft">Kaydet & Kapat</button>
+        </div>
+    </div>
+
+    <!-- FORM -->
+    <form id="svcForm" method="post" class="bg-slate-50 rounded-2xl border border-slate-100 p-4 space-y-4">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" name="Item.ServisId" value="@Model.Item.ServisId" />
+        <input type="hidden" name="Item.ServisDurum" value="@(Model.Item.ServisDurum ?? 1)" />
+        <input type="hidden" name="Item.ServisAktif" value="@(Model.Item.ServisAktif ?? true)" />
+        <input type="hidden" name="Item.ServisTamamlandi" value="@(Model.Item.ServisTamamlandi ?? false)" />
+
+        <!-- Servisi giren kişi -->
+        <input type="hidden" name="Item.ServisGirenSaticiKod" value="@(Model.Item.ServisGirenSaticiKod ?? Model.CurrentSipSaticiKod)" />
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+            <div class="md:col-span-3">
+                <label class="svc-grid-label">Servis Tarihi</label>
+                <input class="svc-input" type="date" name="Item.ServisTarih" value="@DateVal(Model.Item.ServisTarih)" />
+            </div>
+
+            <!-- ✅ Müşteri autocomplete -->
+            <div class="md:col-span-3">
+                <label class="svc-grid-label">Müşteri (Cari Kod)</label>
+
+                <div class="svc-ac-wrap">
+                    <input class="svc-input"
+                           id="cariKodInput"
+                           name="Item.ServisCariKod"
+                           autocomplete="off"
+                           value="@(Model.Item.ServisCariKod ?? "")"
+                           placeholder="Cari kod / isim yaz..." />
+                    <div id="cariPanel" class="svc-ac-panel" role="listbox" aria-label="Cari Öneriler"></div>
+                </div>
+
+                <div class="text-[11px] text-slate-500 mt-1">
+                    Seçili: <span id="cariAdText" class="font-semibold text-slate-700">@(string.IsNullOrWhiteSpace(Model.CariAd) ? "-" : Model.CariAd)</span>
+                </div>
+            </div>
+
+            <!-- ✅ Ürün autocomplete (daha geniş!) -->
+            <div class="md:col-span-6">
+                <label class="svc-grid-label">Ürün (Stok Kod)</label>
+
+                <div class="svc-ac-wrap">
+                    <input class="svc-input"
+                           id="stokKodInput"
+                           name="Item.ServisStokKod"
+                           autocomplete="off"
+                           value="@(Model.Item.ServisStokKod ?? "")"
+                           placeholder="Stok kod / ürün adı yaz..." />
+                    <div id="stokPanel" class="svc-ac-panel" role="listbox" aria-label="Stok Öneriler"></div>
+                </div>
+
+                <div class="text-[11px] text-slate-500 mt-1">
+                    Seçili: <span id="stokAdText" class="font-semibold text-slate-700">@(string.IsNullOrWhiteSpace(Model.StokAd) ? "-" : Model.StokAd)</span>
+                </div>
+            </div>
+
+            <div class="md:col-span-4">
+                <label class="svc-grid-label">Seri No</label>
+                <input class="svc-input" name="Item.ServisSeriNumara" value="@(Model.Item.ServisSeriNumara ?? "")" placeholder="Seri numara" />
+            </div>
+
+            <div class="md:col-span-4">
+                <label class="svc-grid-label">Satınalma Tarihi</label>
+                <input class="svc-input" type="date" name="Item.ServisSatinalmaTarih" value="@DateVal(Model.Item.ServisSatinalmaTarih)" />
+            </div>
+
+            <!-- ✅ Garanti Var/Yok + Ay -->
+            <div class="md:col-span-4">
+                <label class="svc-grid-label">Garanti</label>
+
+                <div class="flex flex-col gap-2">
+                    <div class="svc-toggle" role="group" aria-label="Garanti Var/Yok">
+                        <button type="button" id="garVarBtn" class="@(garantiVar ? "active" : "")">Var</button>
+                        <button type="button" id="garYokBtn" class="@(!garantiVar ? "active" : "")">Yok</button>
+                    </div>
+
+                    <input class="svc-input"
+                           id="garantiAyInput"
+                           type="number"
+                           min="0"
+                           name="Item.ServisGaranti"
+                           value="@(garantiAy?.ToString() ?? "")"
+                           placeholder="Garanti ay (örn: 24)"
+                           style="@(garantiVar ? "" : "display:none;")" />
+                </div>
+            </div>
+
+            <div class="md:col-span-6">
+                <label class="svc-grid-label">Teslim Eden</label>
+                <input class="svc-input" name="Item.ServisTeslimEden" value="@(Model.Item.ServisTeslimEden ?? "")" placeholder="Teslim eden" />
+            </div>
+
+            <div class="md:col-span-6">
+                <label class="svc-grid-label">Teslim Alan</label>
+                <input class="svc-input" name="Item.ServisTeslimAlan" value="@(Model.Item.ServisTeslimAlan ?? "")" placeholder="Teslim alan" />
+            </div>
+
+            <div class="md:col-span-12">
+                <label class="svc-grid-label">Arıza Açıklama</label>
+                <textarea class="svc-input" rows="4" name="Item.ServisArizaAciklama" placeholder="Arızayı detaylı yaz...">@(Model.Item.ServisArizaAciklama ?? "")</textarea>
+            </div>
+        </div>
+    </form>
+
+    <!-- DURUM ADIMLARI -->
+    <div class="bg-white rounded-2xl border border-slate-100 p-4 space-y-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="text-sm font-extrabold text-slate-900">Durum Yönetimi</div>
+                <div class="text-[11px] text-slate-500">Detay içinde adım adım ilerlet.</div>
+            </div>
+            <span class="svc-badge">Mevcut: @DurumText(durum)</span>
+        </div>
+
+        <!-- 2) Tedarikçiye Gönder -->
+        <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+            <div class="text-sm font-bold text-slate-800">2) Tedarikçiye Gönder</div>
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <div class="md:col-span-3">
+                    <label class="svc-grid-label">Gönderim Tarih</label>
+                    <input id="tedGonTarih" class="svc-input" type="date" value="@DateVal(Model.Item.TedGonderimTarih)" />
+                </div>
+                <div class="md:col-span-4">
+                    <label class="svc-grid-label">Tedarikçi Cari Kod</label>
+                    <input id="tedCariKod" class="svc-input" value="@(Model.Item.TedGonderimCariKod ?? "")" placeholder="Tedarikçi carikodu" />
+                </div>
+                <div class="md:col-span-5">
+                    <label class="svc-grid-label">Açıklama</label>
+                    <input id="tedGonAciklama" class="svc-input" value="@(Model.Item.TedGonderimAciklama ?? "")" placeholder="Kargo, not vs." />
+                </div>
+
+                <div class="md:col-span-12 flex justify-end">
+                    <button type="button" id="btnSetTedarikciyeGonder" class="svc-btn svc-btn-primary" @(isNew ? "disabled" : "")>
+                        Tedarikçiye Gönderildi Yap
+                    </button>
+                </div>
+                @if (isNew)
+                {
+                    <div class="md:col-span-12 text-[11px] text-amber-600">Önce kaydı kaydetmelisin.</div>
+                }
+            </div>
+        </div>
+
+        <!-- 3) Tedarikçiden Geldi -->
+        <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+            <div class="text-sm font-bold text-slate-800">3) Tedarikçiden Geldi</div>
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <div class="md:col-span-3">
+                    <label class="svc-grid-label">Alım Tarih</label>
+                    <input id="tedAlimTarih" class="svc-input" type="date" value="@DateVal(Model.Item.TedAlimTarih)" />
+                </div>
+                <div class="md:col-span-4">
+                    <label class="svc-grid-label">Yapılan İşlem</label>
+                    <input id="tedYapilanIslem" class="svc-input" value="@(Model.Item.TedAlimYapilanIslem ?? "")" placeholder="Değişim / tamir / iade..." />
+                </div>
+                <div class="md:col-span-3">
+                    <label class="svc-grid-label">Yeni Seri No</label>
+                    <input id="tedYeniSeri" class="svc-input" value="@(Model.Item.TedAlimSeriNumara ?? "")" placeholder="Yeni seri no" />
+                </div>
+                <div class="md:col-span-2">
+                    <label class="svc-grid-label">Teslim Alan</label>
+                    <input id="tedTeslimAlan" class="svc-input" value="@(Model.Item.TedAlimTeslimAlan ?? "")" placeholder="Teslim alan" />
+                </div>
+
+                <div class="md:col-span-12 flex justify-end">
+                    <button type="button" id="btnSetTedarikcidenGeldi" class="svc-btn svc-btn-primary" @(isNew ? "disabled" : "")>
+                        Tedarikçiden Geldi Yap
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4) Müşteriye Teslim -->
+        <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4 space-y-3">
+            <div class="text-sm font-bold text-slate-800">4) Müşteriye Teslim</div>
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <div class="md:col-span-3">
+                    <label class="svc-grid-label">Teslim Tarih</label>
+                    <input id="musTeslimTarih" class="svc-input" type="date" value="@DateVal(Model.Item.MusTeslimTarih)" />
+                </div>
+                <div class="md:col-span-4">
+                    <label class="svc-grid-label">Yapılan İşlem</label>
+                    <input id="musYapilanIslem" class="svc-input" value="@(Model.Item.MusYapilanIslem ?? "")" placeholder="Müşteriye yapılan işlem..." />
+                </div>
+                <div class="md:col-span-3">
+                    <label class="svc-grid-label">Yeni Seri No</label>
+                    <input id="musYeniSeri" class="svc-input" value="@(Model.Item.MusSeriNumara ?? "")" placeholder="Yeni seri no" />
+                </div>
+                <div class="md:col-span-2">
+                    <label class="svc-grid-label">Teslim Eden</label>
+                    <input id="musTeslimEden" class="svc-input" value="@(Model.Item.MusTeslimEden ?? "")" placeholder="Teslim eden" />
+                </div>
+
+                <div class="md:col-span-6">
+                    <label class="svc-grid-label">Teslim Alan</label>
+                    <input id="musTeslimAlan" class="svc-input" value="@(Model.Item.MusTeslimAlan ?? "")" placeholder="Teslim alan" />
+                </div>
+
+                <div class="md:col-span-12 flex justify-end">
+                    <button type="button" id="btnSetMusteriyeTeslim" class="svc-btn svc-btn-primary" @(isNew ? "disabled" : "")>
+                        Teslim Edildi Yap
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pasife Alma -->
+        <div class="flex items-center justify-between pt-2">
+            <div class="text-[11px] text-slate-500">
+                Bu kayıt artık görünmesin istiyorsan pasif yap.
+            </div>
+            <button type="button" id="btnToggleAktif" class="svc-btn svc-btn-soft" @(isNew ? "disabled" : "")>
+                @(aktif ? "Pasif Yap" : "Aktif Yap")
+            </button>
+        </div>
+    </div>
+
+    <div id="svcMsg" class="text-sm"></div>
+</div>
+
+<script>
+(function(){
+    const msg = document.getElementById("svcMsg");
+    const isNew = @(isNew.ToString().ToLowerInvariant());
+    const servisId = @Model.Item.ServisId;
+
+    function ok(text){
+        msg.innerHTML = `<div class="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm">${text}</div>`;
+    }
+    function err(text){
+        msg.innerHTML = `<div class="px-3 py-2 rounded-xl bg-rose-50 border border-rose-100 text-rose-700 text-sm">${text}</div>`;
+    }
+
+    function formData(){
+        return new FormData(document.getElementById("svcForm"));
+    }
+
+    async function postForm(url, fd){
+        const res = await fetch(url, { method: "POST", body: fd });
+        if(!res.ok){
+            const t = await res.text();
+            throw new Error(t || "İşlem başarısız");
+        }
+        return await res.text();
+    }
+
+    async function postJson(url, body){
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" },
+            body: new URLSearchParams(body)
+        });
+        if(!res.ok){
+            const t = await res.text();
+            throw new Error(t || "İşlem başarısız");
+        }
+        return await res.text();
+    }
+
+    async function save(closeAfter){
+        try{
+            const url = `@Url.Action("Save","Servis")`;
+            await postForm(url, formData());
+            ok("Kaydedildi.");
+
+            window.__servis && window.__servis.loadList && window.__servis.loadList(1);
+
+            if(closeAfter){
+                window.__servis && window.__servis.closeModal && window.__servis.closeModal();
+            }
+        }catch(e){
+            err(e.message || "Kaydetme hatası");
+        }
+    }
+
+    document.getElementById("svcSaveBtn").addEventListener("click", () => save(false));
+    document.getElementById("svcSaveCloseBtn").addEventListener("click", () => save(true));
+
+    // =========================
+    // Garanti Var/Yok
+    // =========================
+    const garVarBtn = document.getElementById("garVarBtn");
+    const garYokBtn = document.getElementById("garYokBtn");
+    const garantiAyInput = document.getElementById("garantiAyInput");
+
+    function setGarantiVar(isVar){
+        if(isVar){
+            garVarBtn.classList.add("active");
+            garYokBtn.classList.remove("active");
+            garantiAyInput.style.display = "";
+            if(!garantiAyInput.value) garantiAyInput.value = "24"; // default istersen kaldır
+            garantiAyInput.focus();
+        }else{
+            garYokBtn.classList.add("active");
+            garVarBtn.classList.remove("active");
+            garantiAyInput.value = "";      // yoksa DB'ye null gitsin
+            garantiAyInput.style.display = "none";
+        }
+    }
+    garVarBtn.addEventListener("click", () => setGarantiVar(true));
+    garYokBtn.addEventListener("click", () => setGarantiVar(false));
+
+    // =========================
+    // Autocomplete helper
+    // =========================
+    function debounce(fn, ms){
+        let t=null;
+        return (...args)=>{
+            clearTimeout(t);
+            t=setTimeout(()=>fn(...args), ms);
+        };
+    }
+
+    async function fetchJson(url){
+        const res = await fetch(url);
+        if(!res.ok) return [];
+        return await res.json();
+    }
+
+    function hidePanel(panel){
+        panel.style.display = "none";
+        panel.innerHTML = "";
+        panel.dataset.activeIndex = "-1";
+    }
+
+    function showPanel(panel){
+        panel.style.display = "block";
+    }
+
+    function renderPanel(panel, items, onPick){
+        panel.innerHTML = "";
+        panel.dataset.activeIndex = "-1";
+
+        if(!items || !items.length){
+            const empty = document.createElement("div");
+            empty.className = "svc-ac-item";
+            empty.style.cursor = "default";
+            empty.innerHTML = `<div class="svc-ac-title">Sonuç bulunamadı</div><div class="svc-ac-sub">Yazdığınız ifadeyi kontrol edin.</div>`;
+            panel.appendChild(empty);
+            showPanel(panel);
+            return;
+        }
+
+        items.forEach((it, i)=>{
+            const row = document.createElement("div");
+            row.className = "svc-ac-item";
+            row.setAttribute("role","option");
+            row.dataset.index = String(i);
+            row.innerHTML = `
+                <div class="svc-ac-title">${(it.kod || "-")} — ${(it.ad || "-")}</div>
+                <div class="svc-ac-sub">Seçmek için tıkla • Enter</div>
+            `;
+            row.addEventListener("mousedown", (e)=>{ // blur olmadan seçsin
+                e.preventDefault();
+                onPick(it);
+                hidePanel(panel);
+            });
+            panel.appendChild(row);
+        });
+
+        showPanel(panel);
+    }
+
+    function moveActive(panel, dir){
+        const items = Array.from(panel.querySelectorAll(".svc-ac-item"));
+        if(!items.length) return;
+
+        let idx = parseInt(panel.dataset.activeIndex || "-1", 10);
+        idx = idx + dir;
+        if(idx < 0) idx = items.length - 1;
+        if(idx >= items.length) idx = 0;
+
+        items.forEach(x => x.classList.remove("active"));
+        items[idx].classList.add("active");
+        panel.dataset.activeIndex = String(idx);
+
+        // görünür alana getir
+        items[idx].scrollIntoView({ block: "nearest" });
+    }
+
+    function pickActive(panel, items, onPick){
+        const idx = parseInt(panel.dataset.activeIndex || "-1", 10);
+        if(idx >= 0 && idx < items.length){
+            onPick(items[idx]);
+            hidePanel(panel);
+            return true;
+        }
+        return false;
+    }
+
+    // =========================
+    // Cari autocomplete
+    // =========================
+    const cariKodInput = document.getElementById("cariKodInput");
+    const cariAdText = document.getElementById("cariAdText");
+    const cariPanel = document.getElementById("cariPanel");
+    let cariItems = [];
+
+    const cariSearch = debounce(async ()=>{
+        const q = (cariKodInput.value || "").trim();
+        if(q.length < 2){ hidePanel(cariPanel); return; }
+
+        const url = `@Url.Action("CariSuggest","Servis")?q=${encodeURIComponent(q)}`;
+        cariItems = await fetchJson(url);
+
+        renderPanel(cariPanel, cariItems, (it)=>{
+            cariKodInput.value = it.kod || "";
+            cariAdText.textContent = it.ad || "-";
+        });
+    }, 200);
+
+    cariKodInput.addEventListener("input", cariSearch);
+    cariKodInput.addEventListener("focus", cariSearch);
+
+    cariKodInput.addEventListener("keydown", (e)=>{
+        if(cariPanel.style.display !== "block") return;
+
+        if(e.key === "ArrowDown"){ e.preventDefault(); moveActive(cariPanel, +1); }
+        else if(e.key === "ArrowUp"){ e.preventDefault(); moveActive(cariPanel, -1); }
+        else if(e.key === "Enter"){
+            e.preventDefault();
+            if(pickActive(cariPanel, cariItems, (it)=>{
+                cariKodInput.value = it.kod || "";
+                cariAdText.textContent = it.ad || "-";
+            })){
+                // picked
+            }
+        } else if(e.key === "Escape"){ hidePanel(cariPanel); }
+    });
+
+    // =========================
+    // Stok autocomplete
+    // =========================
+    const stokKodInput = document.getElementById("stokKodInput");
+    const stokAdText = document.getElementById("stokAdText");
+    const stokPanel = document.getElementById("stokPanel");
+    let stokItems = [];
+
+    const stokSearch = debounce(async ()=>{
+        const q = (stokKodInput.value || "").trim();
+        if(q.length < 2){ hidePanel(stokPanel); return; }
+
+        const url = `@Url.Action("StokSuggest","Servis")?q=${encodeURIComponent(q)}`;
+        stokItems = await fetchJson(url);
+
+        renderPanel(stokPanel, stokItems, (it)=>{
+            stokKodInput.value = it.kod || "";
+            stokAdText.textContent = it.ad || "-";
+        });
+    }, 200);
+
+    stokKodInput.addEventListener("input", stokSearch);
+    stokKodInput.addEventListener("focus", stokSearch);
+
+    stokKodInput.addEventListener("keydown", (e)=>{
+        if(stokPanel.style.display !== "block") return;
+
+        if(e.key === "ArrowDown"){ e.preventDefault(); moveActive(stokPanel, +1); }
+        else if(e.key === "ArrowUp"){ e.preventDefault(); moveActive(stokPanel, -1); }
+        else if(e.key === "Enter"){
+            e.preventDefault();
+            pickActive(stokPanel, stokItems, (it)=>{
+                stokKodInput.value = it.kod || "";
+                stokAdText.textContent = it.ad || "-";
+            });
+        } else if(e.key === "Escape"){ hidePanel(stokPanel); }
+    });
+
+    // dışarı tıkla -> panelleri kapat
+    document.addEventListener("mousedown", (e)=>{
+        const t = e.target;
+        if(!t.closest(".svc-ac-wrap")){
+            hidePanel(cariPanel);
+            hidePanel(stokPanel);
+        }
+    });
+
+    // =========================
+    // Stage actions
+    // =========================
+    const btn2 = document.getElementById("btnSetTedarikciyeGonder");
+    const btn3 = document.getElementById("btnSetTedarikcidenGeldi");
+    const btn4 = document.getElementById("btnSetMusteriyeTeslim");
+    const btnAktif = document.getElementById("btnToggleAktif");
+
+    if(btn2) btn2.addEventListener("click", async () => {
+        try{
+            if(isNew) return err("Önce kaydı kaydet.");
+            await postJson(`@Url.Action("SetTedarikciyeGonder","Servis")`, {
+                servisId: String(servisId),
+                gonderimTarih: document.getElementById("tedGonTarih").value,
+                tedCariKod: document.getElementById("tedCariKod").value,
+                aciklama: document.getElementById("tedGonAciklama").value
+            });
+            ok("Durum güncellendi: Tedarikçiye Gönderildi.");
+            window.__servis && window.__servis.loadList && window.__servis.loadList(1);
+        }catch(e){ err(e.message || "İşlem hatası"); }
+    });
+
+    if(btn3) btn3.addEventListener("click", async () => {
+        try{
+            if(isNew) return err("Önce kaydı kaydet.");
+            await postJson(`@Url.Action("SetTedarikcidenGeldi","Servis")`, {
+                servisId: String(servisId),
+                alimTarih: document.getElementById("tedAlimTarih").value,
+                yapilanIslem: document.getElementById("tedYapilanIslem").value,
+                yeniSeriNumara: document.getElementById("tedYeniSeri").value,
+                teslimAlan: document.getElementById("tedTeslimAlan").value
+            });
+            ok("Durum güncellendi: Tedarikçiden Geldi.");
+            window.__servis && window.__servis.loadList && window.__servis.loadList(1);
+        }catch(e){ err(e.message || "İşlem hatası"); }
+    });
+
+    if(btn4) btn4.addEventListener("click", async () => {
+        try{
+            if(isNew) return err("Önce kaydı kaydet.");
+            await postJson(`@Url.Action("SetMusteriyeTeslim","Servis")`, {
+                servisId: String(servisId),
+                teslimTarih: document.getElementById("musTeslimTarih").value,
+                yapilanIslem: document.getElementById("musYapilanIslem").value,
+                yeniSeriNumara: document.getElementById("musYeniSeri").value,
+                teslimEden: document.getElementById("musTeslimEden").value,
+                teslimAlan: document.getElementById("musTeslimAlan").value
+            });
+            ok("Durum güncellendi: Teslim Edildi.");
+            window.__servis && window.__servis.loadList && window.__servis.loadList(1);
+        }catch(e){ err(e.message || "İşlem hatası"); }
+    });
+
+    if(btnAktif) btnAktif.addEventListener("click", async () => {
+        try{
+            if(isNew) return err("Önce kaydı kaydet.");
+            const aktifNow = @((aktif).ToString().ToLowerInvariant());
+            await postJson(`@Url.Action("SetAktif","Servis")`, {
+                servisId: String(servisId),
+                aktif: (!aktifNow).toString()
+            });
+            ok("Aktiflik güncellendi.");
+            window.__servis && window.__servis.loadList && window.__servis.loadList(1);
+            window.__servis && window.__servis.closeModal && window.__servis.closeModal();
+        }catch(e){ err(e.message || "İşlem hatası"); }
+    });
+
+})();
+</script>

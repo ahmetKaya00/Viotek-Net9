@@ -1,9 +1,13 @@
 @model ViotekErp.Models.SiparisListViewModel
+@using System.Security.Claims
 
 @{
     Layout = "_ErpLayout";
     ViewData["Title"] = "Siparişler";
     var currentSort = ViewContext.HttpContext.Request.Query["sort"].ToString();
+
+    var role = User?.FindFirst(ClaimTypes.Role)?.Value ?? "";
+    var isAdmin = string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase);
 }
 
 <style>
@@ -27,7 +31,8 @@
                 SIPARISLER tablosu üzerinden filtrelenmiş sipariş listesi (Evrak bazlı).
             </p>
         </div>
-
+@if (isAdmin)
+{
         <div class="flex flex-wrap gap-3 text-xs">
             <div class="px-3 py-2 rounded-xl bg-white border border-slate-100 shadow-sm">
                 <p class="text-slate-500">Toplam Kayıt</p>
@@ -51,8 +56,8 @@
                 </p>
             </div>
         </div>
+}
     </div>
-
     <!-- Filtre Formu -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
         <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">

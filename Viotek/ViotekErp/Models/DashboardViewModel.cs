@@ -13,6 +13,7 @@ namespace ViotekErp.Models
 
         // KARTLAR
         public double MonthlySalesTotal { get; set; }       // (artık seçilen aralık toplamı gibi düşünebilirsin)
+        public double MonthlySalesTotalUsd { get; set; }   // seçilen dönemde USD toplam (KDV hariç)
         public int TodayOrderCount { get; set; }
 
         public string? EmployeeOfMonthName { get; set; }
@@ -23,6 +24,13 @@ namespace ViotekErp.Models
         public double TotalSalesAllTime { get; set; }
         public int TotalOrderCount { get; set; }
         public DateTime? FirstOrderDate { get; set; }
+        // KARTLAR
+
+        // SERVİS KARTLARI
+        public int ServisAcilanCount { get; set; }            // ServisDurum = 1
+        public int ServisTedarikcideCount { get; set; }       // ServisDurum = 2
+        public int ServisTedarikcidenGelenCount { get; set; } // ServisDurum = 3
+        public int ServisTeslimEdilenCount { get; set; }      // ServisDurum = 4
         public DateTime? LastOrderDate { get; set; }
 
         public double Last30DaysSalesTotal { get; set; }

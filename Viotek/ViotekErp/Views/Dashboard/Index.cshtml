@@ -1,16 +1,81 @@
 @model ViotekErp.Models.DashboardViewModel
 @using System.Linq
+@using System.Security.Claims
 
 @{
     Layout = "_ErpLayout";
     ViewData["Title"] = "Yönetim Paneli";
 
-    var weeklyTotal = Model.WeeklySales?.Sum(x => x.Amount) ?? 0;
-    var weeklyTotalKdvli = weeklyTotal * 1.20;
+    // ✅ Grafik datası artık ChartPoints
+    var chartTotal = Model.ChartPoints?.Sum(x => x.Amount) ?? 0;
+    var chartTotalKdvli = chartTotal * 1.20;
 
-    var bestDay = Model.WeeklySales?
+    var bestDay = Model.ChartPoints?
         .OrderByDescending(x => x.Amount)
         .FirstOrDefault();
+}
+
+@{
+    var role = User?.FindFirst(ClaimTypes.Role)?.Value ?? "";
+    var isAdmin = string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase);
+
+    var displayName =
+        User?.FindFirst("AdSoyad")?.Value ??
+        User?.FindFirst(ClaimTypes.Name)?.Value ??
+        "Kullanıcı";
+}
+
+@if (!isAdmin)
+{
+    <div class="min-h-[calc(100vh-64px)] bg-slate-50 px-6 py-6">
+        <div class="max-w-4xl mx-auto">
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+                <h1 class="text-2xl font-bold text-slate-900">
+                    Selam @displayName 👋
+                </h1>
+                <p class="text-sm text-slate-500 mt-2">
+                    Hoş geldin. Bu panelde sadece yetkili olduğun alanları görebilirsin.
+                </p>
+
+                <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <a asp-controller="Siparisler" asp-action="Index"
+                       class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md transition">
+                        <div class="text-xs font-semibold tracking-[0.15em] text-slate-500 uppercase">
+                            Siparişler
+                        </div>
+                        <div class="mt-2 text-base font-semibold text-slate-900">
+                            Sipariş ekranına git
+                        </div>
+                        <div class="mt-1 text-xs text-slate-400">
+                            Siparişleri görüntüle / filtrele
+                        </div>
+                    </a>
+
+                    <a asp-controller="Stoklar" asp-action="Index"
+                       class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md transition">
+                        <div class="text-xs font-semibold tracking-[0.15em] text-slate-500 uppercase">
+                            Stok Yönetimi
+                        </div>
+                        <div class="mt-2 text-base font-semibold text-slate-900">
+                            Stok ekranına git
+                        </div>
+                        <div class="mt-1 text-xs text-slate-400">
+                            Stokları görüntüle / kontrol et
+                        </div>
+                    </a>
+                </div>
+
+                <div class="mt-6 text-xs text-slate-400">
+                    Not: Daha fazla yetki gerekiyorsa admin kullanıcıdan talep edebilirsin.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    @* User ise dashboard’un geri kalanını hiç çizme *@
+    return;
 }
 
 <style>
@@ -102,12 +167,29 @@
                 <p class="text-xs font-semibold tracking-[0.15em] text-slate-500 uppercase">
                     TOPLAM SATIŞ (SEÇİLEN DÖNEM) - KDV HARİÇ
                 </p>
-                <p class="mt-3 text-2xl font-bold text-emerald-600">
-                    @Model.MonthlySalesTotal.ToString("N2") TL
-                </p>
-                <p class="mt-1 text-xs text-slate-400">
-                    KDV %20 Dahil: @((Model.MonthlySalesTotal * 1.20).ToString("N2")) TL
-                </p>
+
+                <div class="mt-3 space-y-2">
+                    <div>
+                        <div class="text-[11px] text-slate-500">TL (KDV Hariç)</div>
+                        <div class="text-2xl font-bold text-emerald-600">
+                            @Model.MonthlySalesTotal.ToString("N2") TL
+                        </div>
+                        <div class="text-xs text-slate-400">
+                            KDV %20 Dahil: @((Model.MonthlySalesTotal * 1.20).ToString("N2")) TL
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-100">
+                        <div class="text-[11px] text-slate-500">USD (KDV Hariç)</div>
+                        <div class="text-xl font-bold text-slate-900">
+                            @Model.MonthlySalesTotalUsd.ToString("N2") USD
+                        </div>
+                        <div class="text-xs text-slate-400">
+                            KDV %20 Dahil: @((Model.MonthlySalesTotalUsd * 1.20).ToString("N2")) USD
+                        </div>
+                    </div>
+                </div>
+
             </div>
             <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
                 <span class="text-emerald-500 text-xl">💵</span>
@@ -163,26 +245,26 @@
     </div>
 
     <!-- Grafik -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-4">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
             <div>
                 <h2 class="text-lg font-semibold text-slate-900">Satış Grafiği</h2>
                 <p class="text-xs text-slate-400 mt-1">
-                    Seçilen dönemin son günlerine göre günlük satış (TL net, KDV hariç).
+                    Seçilen döneme göre satış (TL net, KDV hariç).
                 </p>
             </div>
 
             <div class="flex flex-wrap gap-4 text-xs">
                 <div class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-100">
                     <p class="text-slate-500">Grafik Toplam (KDV Hariç)</p>
-                    <p class="font-semibold text-slate-800">@weeklyTotal.ToString("N2") TL</p>
-                    <p class="text-slate-400">KDV %20 Dahil: @weeklyTotalKdvli.ToString("N2") TL</p>
+                    <p class="font-semibold text-slate-800">@chartTotal.ToString("N2") TL</p>
+                    <p class="text-slate-400">KDV %20 Dahil: @chartTotalKdvli.ToString("N2") TL</p>
                 </div>
 
                 @if (bestDay != null)
                 {
                     <div class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-100">
-                        <p class="text-slate-500">En Yoğun Gün</p>
+                        <p class="text-slate-500">En Yoğun</p>
                         <p class="font-semibold text-slate-800">
                             @bestDay.DayLabel — @bestDay.Amount.ToString("N2") TL
                         </p>
@@ -194,6 +276,66 @@
         <div class="h-72">
             <canvas id="weeklyChart"></canvas>
         </div>
+    </div>
+
+    <!-- ✅ SERVİS KARTLARI: GRAFİĞİN ALTINDA ve 5'Lİ YAN YANA -->
+    <div class="grid grid-cols-5 gap-4 mb-6">
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 px-4 py-4 flex items-center justify-between">
+            <div>
+                <p class="text-[10px] font-semibold tracking-[0.15em] text-slate-500 uppercase">AÇILAN</p>
+                <p class="mt-2 text-2xl font-bold text-indigo-600">@((int)(ViewBag.ServisAcilanCount ?? 0))</p>
+                <p class="mt-1 text-[10px] text-slate-400">ServisDurum: 1</p>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                <span class="text-indigo-500 text-xl">🧾</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 px-4 py-4 flex items-center justify-between">
+            <div>
+                <p class="text-[10px] font-semibold tracking-[0.15em] text-slate-500 uppercase">TEDARİKÇİDE</p>
+                <p class="mt-2 text-2xl font-bold text-amber-600">@((int)(ViewBag.ServisTedarikcideCount ?? 0))</p>
+                <p class="mt-1 text-[10px] text-slate-400">ServisDurum: 2</p>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                <span class="text-amber-500 text-xl">🚚</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 px-4 py-4 flex items-center justify-between">
+            <div>
+                <p class="text-[10px] font-semibold tracking-[0.15em] text-slate-500 uppercase">TEDARİKÇİDEN GELEN</p>
+                <p class="mt-2 text-2xl font-bold text-sky-600">@((int)(ViewBag.ServisTedarikcidenGelenCount ?? 0))</p>
+                <p class="mt-1 text-[10px] text-slate-400">ServisDurum: 3</p>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center">
+                <span class="text-sky-500 text-xl">📥</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 px-4 py-4 flex items-center justify-between">
+            <div>
+                <p class="text-[10px] font-semibold tracking-[0.15em] text-slate-500 uppercase">TESLİM EDİLEN</p>
+                <p class="mt-2 text-2xl font-bold text-emerald-600">@((int)(ViewBag.ServisTeslimEdilenCount ?? 0))</p>
+                <p class="mt-1 text-[10px] text-slate-400">ServisDurum: 4</p>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                <span class="text-emerald-500 text-xl">✅</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 px-4 py-4 flex items-center justify-between">
+            <div>
+                <p class="text-[10px] font-semibold tracking-[0.15em] text-slate-500 uppercase">TOPLAM</p>
+                <p class="mt-2 text-2xl font-bold text-slate-900">@((int)(ViewBag.ServisTotalCount ?? 0))</p>
+                <p class="mt-1 text-[10px] text-slate-400">Aktif servisler</p>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                <span class="text-slate-500 text-xl">📊</span>
+            </div>
+        </div>
+
     </div>
 
     <!-- Son 10 Sipariş -->
@@ -278,7 +420,7 @@
             }
         </div>
 
-        <!-- ✅ WEB: Tablo (webde aynı kalsın) -->
+        <!-- ✅ WEB: Tablo -->
         <div class="dash-table">
             <div class="overflow-x-auto">
                 <table class="min-w-full text-left text-xs">

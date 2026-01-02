@@ -1,0 +1,290 @@
+@model ViotekErp.Models.ServisIndexVm
+@using ViotekErp.Models
+
+@{
+    Layout = "_ErpLayout";
+    ViewData["Title"] = "Servis";
+    var tab = string.IsNullOrWhiteSpace(Model.ActiveTab) ? ServisTabs.Acilan : Model.ActiveTab;
+}
+
+<!-- SAYFANIN TAMAMI: yatay taşmayı burada kesin kesiyoruz -->
+<div class="min-h-[calc(100vh-56px)] w-full max-w-full min-w-0 overflow-x-hidden bg-slate-50 px-3 sm:px-6 py-4 sm:py-6 space-y-4">
+<div class="w-full max-w-full min-w-0 overflow-x-hidden bg-slate-50 px-3 sm:px-6 py-4 sm:py-6 space-y-4">
+
+    <!-- Başlık -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 min-w-0">
+        <div class="min-w-0">
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">Servis</h1>
+            <p class="text-xs text-slate-500 mt-1">
+                Açılan / Tedarikçide / Tedarikçiden Gelen / Teslim Edilen kayıtları tek sayfada yönet.
+            </p>
+        </div>
+
+        <!-- Sağ kutu + buton: taşmayı engelle -->
+        <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full lg:w-auto min-w-0">
+            <div class="px-3 py-2 rounded-xl bg-white border border-slate-100 shadow-sm text-xs w-full sm:w-auto min-w-0">
+                <div class="text-slate-500">Giriş yapan</div>
+                <div class="font-semibold text-slate-900 truncate">
+                    @(string.IsNullOrWhiteSpace(Model.CurrentSipSaticiAd) ? "-" : Model.CurrentSipSaticiAd)
+                </div>
+                <div class="text-[11px] text-slate-400 truncate">
+                    @(string.IsNullOrWhiteSpace(Model.CurrentSipSaticiKod) ? "" : $"SipSaticiKod: {Model.CurrentSipSaticiKod}")
+                </div>
+            </div>
+
+            <button type="button"
+                    id="btnNewServis"
+                    class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-sm hover:bg-indigo-700 transition
+                           w-full sm:w-auto whitespace-nowrap">
+                + Yeni Servis
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabs: Desktop = butonlar | Mobil = select -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-2 max-w-full">
+
+        <!-- MOBİL (sm altı) -->
+        <div class="sm:hidden">
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Durum</label>
+            <select id="tabSelect"
+                    class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="@ServisTabs.Acilan">Açılanlar</option>
+                <option value="@ServisTabs.Tedarikcide">Tedarikçide</option>
+                <option value="@ServisTabs.TedarikcidenGelen">Tedarikçiden Gelen</option>
+                <option value="@ServisTabs.TeslimEdilen">Teslim Edilen</option>
+            </select>
+        </div>
+
+        <!-- DESKTOP (sm ve üstü) -->
+        <div class="hidden sm:block">
+            <div class="flex flex-nowrap gap-2 whitespace-nowrap overflow-x-auto"
+                 style="-webkit-overflow-scrolling: touch;">
+                <button type="button" class="svc-tab px-4 py-2 rounded-xl text-sm font-semibold shrink-0" data-tab="@ServisTabs.Acilan">Açılanlar</button>
+                <button type="button" class="svc-tab px-4 py-2 rounded-xl text-sm font-semibold shrink-0" data-tab="@ServisTabs.Tedarikcide">Tedarikçide</button>
+                <button type="button" class="svc-tab px-4 py-2 rounded-xl text-sm font-semibold shrink-0" data-tab="@ServisTabs.TedarikcidenGelen">Tedarikçiden Gelen</button>
+                <button type="button" class="svc-tab px-4 py-2 rounded-xl text-sm font-semibold shrink-0" data-tab="@ServisTabs.TeslimEdilen">Teslim Edilen</button>
+            </div>
+        </div>
+
+        <input type="hidden" id="activeTab" value="@tab" />
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 max-w-full min-w-0">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-end min-w-0">
+            <div class="lg:col-span-5 min-w-0">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Arama</label>
+                <input id="searchInput"
+                       type="text"
+                       value="@(Model.Search ?? "")"
+                       placeholder="Cari adı / stok adı / seri no / açıklama..."
+                       class="w-full max-w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white
+                              focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+            </div>
+
+            <div class="lg:col-span-3">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Başlangıç</label>
+                <input id="dateFrom" type="date"
+                       value="@(Model.DateFrom?.ToString("yyyy-MM-dd") ?? "")"
+                       class="w-full max-w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white
+                              focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+            </div>
+
+            <div class="lg:col-span-3">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Bitiş</label>
+                <input id="dateTo" type="date"
+                       value="@(Model.DateTo?.ToString("yyyy-MM-dd") ?? "")"
+                       class="w-full max-w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white
+                              focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+            </div>
+
+            <div class="lg:col-span-1">
+                <button type="button"
+                        id="btnApply"
+                        class="w-full inline-flex items-center justify-center px-3 py-2 rounded-xl
+                               bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition whitespace-nowrap">
+                    Ara
+                </button>
+            </div>
+
+            <div class="lg:col-span-12 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-2 min-w-0">
+                <div class="text-[11px] text-slate-400">
+                    Liste AJAX ile güncellenir, sayfa değişmez.
+                </div>
+                <button type="button"
+                        id="btnClear"
+                        class="text-xs px-3 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 w-full sm:w-auto whitespace-nowrap">
+                    Temizle
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- List -->
+    <div id="listWrap" class="space-y-3 w-full max-w-full min-w-0">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 text-sm text-slate-500">
+            Yükleniyor...
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="svcModal" class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-sm p-2 sm:p-4">
+    <div class="mx-auto w-full max-w-5xl h-[92vh] sm:h-[90vh] bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 min-w-0">
+            <h2 id="svcModalTitle" class="text-sm font-semibold text-slate-900 truncate">Servis</h2>
+            <button type="button" id="svcModalClose"
+                    class="w-8 h-8 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 shrink-0">✕</button>
+        </div>
+
+        <div id="svcModalBody" class="p-3 sm:p-4 overflow-y-auto overflow-x-hidden text-sm min-w-0"></div>
+    </div>
+</div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    const listWrap = document.getElementById("listWrap");
+    const activeTabEl = document.getElementById("activeTab");
+    const searchInput = document.getElementById("searchInput");
+    const dateFrom = document.getElementById("dateFrom");
+    const dateTo = document.getElementById("dateTo");
+    const btnApply = document.getElementById("btnApply");
+    const btnClear = document.getElementById("btnClear");
+    const btnNew = document.getElementById("btnNewServis");
+
+    const modal = document.getElementById("svcModal");
+    const modalBody = document.getElementById("svcModalBody");
+    const modalTitle = document.getElementById("svcModalTitle");
+    const modalClose = document.getElementById("svcModalClose");
+
+    function openModal(title) {
+        modalTitle.textContent = title || "Servis";
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        document.body.classList.add("overflow-hidden");
+    }
+    function closeModal() {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        modalBody.innerHTML = "";
+        document.body.classList.remove("overflow-hidden");
+    }
+    function setModalHtmlAndRunScripts(html) {
+        modalBody.innerHTML = html;
+        const scripts = modalBody.querySelectorAll("script");
+        scripts.forEach(old => {
+            const s = document.createElement("script");
+            if (old.src) s.src = old.src;
+            else s.textContent = old.textContent || "";
+            document.body.appendChild(s);
+            old.remove();
+        });
+    }
+
+    modalClose.addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+    function paintTabs() {
+        const current = activeTabEl.value;
+        document.querySelectorAll(".svc-tab").forEach(b => {
+            const t = b.getAttribute("data-tab");
+            const active = (t === current);
+            b.className = "svc-tab px-4 py-2 rounded-xl text-sm font-semibold shrink-0 " + (active
+                ? "bg-indigo-600 text-white"
+                : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200");
+        });
+    }
+
+    async function loadList(page) {
+        const tab = activeTabEl.value;
+        const search = (searchInput.value || "").trim();
+        const df = dateFrom.value || "";
+        const dt = dateTo.value || "";
+        const p = page || 1;
+
+        const url = `@Url.Action("ListPartial","Servis")`
+            + `?tab=${encodeURIComponent(tab)}`
+            + `&search=${encodeURIComponent(search)}`
+            + (df ? `&dateFrom=${encodeURIComponent(df)}` : "")
+            + (dt ? `&dateTo=${encodeURIComponent(dt)}` : "")
+            + `&page=${encodeURIComponent(p)}`;
+
+        listWrap.innerHTML = "<div class='bg-white rounded-2xl shadow-sm border border-slate-100 p-6 text-sm text-slate-500'>Yükleniyor...</div>";
+
+        const res = await fetch(url);
+        listWrap.innerHTML = await res.text();
+
+        listWrap.querySelectorAll("a[href]").forEach(a => {
+            a.addEventListener("click", async (e) => {
+                const href = a.getAttribute("href") || "";
+                if (!href || href === "#") return;
+                e.preventDefault();
+                const r = await fetch(href);
+                listWrap.innerHTML = await r.text();
+            });
+        });
+    }
+
+    const tabSelect = document.getElementById("tabSelect");
+    if (tabSelect) tabSelect.value = activeTabEl.value;
+
+    if (tabSelect) {
+        tabSelect.addEventListener("change", () => {
+            activeTabEl.value = tabSelect.value;
+            paintTabs();
+            loadList(1);
+        });
+    }
+
+    document.querySelectorAll(".svc-tab").forEach(b => {
+        b.addEventListener("click", () => {
+            activeTabEl.value = b.getAttribute("data-tab");
+            if (tabSelect) tabSelect.value = activeTabEl.value;
+            paintTabs();
+            loadList(1);
+        });
+    });
+
+    btnApply.addEventListener("click", () => loadList(1));
+    btnClear.addEventListener("click", () => {
+        searchInput.value = "";
+        dateFrom.value = "";
+        dateTo.value = "";
+        loadList(1);
+    });
+
+    btnNew.addEventListener("click", async () => {
+        const url = `@Url.Action("EditModal","Servis")`;
+        const res = await fetch(url);
+        const html = await res.text();
+        setModalHtmlAndRunScripts(html);
+        openModal("Yeni Servis Kaydı");
+    });
+
+    document.addEventListener("click", async (e) => {
+        const btn = e.target.closest(".svc-detail-btn");
+        if (!btn) return;
+
+        const id = btn.getAttribute("data-id");
+        if (!id) return;
+
+        const url = `@Url.Action("EditModal","Servis")?id=${encodeURIComponent(id)}`;
+        const res = await fetch(url);
+        const html = await res.text();
+
+        setModalHtmlAndRunScripts(html);
+        openModal("Servis Detayı");
+    });
+
+    paintTabs();
+    loadList(1);
+
+    window.__servis = { loadList, closeModal };
+})();
+</script>
+}

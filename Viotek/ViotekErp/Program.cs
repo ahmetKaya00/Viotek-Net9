@@ -1,33 +1,36 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using ViotekErp.Data;
+using ViotekErp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --------------------------
-// 1) SERVICES
-// --------------------------
+// Auth
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(o =>
+    {
+        o.LoginPath = "/Auth/Login";
+        o.AccessDeniedPath = "/Auth/Denied";
+        o.ExpireTimeSpan = TimeSpan.FromHours(8);
+        o.SlidingExpiration = true;
+    });
 
-// SQL Server (MikroDB_V16_VIOTEK) bağlantısı
+builder.Services.AddAuthorization();
+builder.Services.AddScoped<ErpAuthService>();
+
+// DB
 builder.Services.AddDbContext<MikroDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MikroDb")));
 
-// MVC (Controller + View)
+// MVC
 builder.Services.AddControllersWithViews()
-
 #if DEBUG
-    // İstersen bu satır için
-    // Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation
-    // paketini eklemen gerekiyor
     .AddRazorRuntimeCompilation()
 #endif
     ;
 
-// --------------------------
-// 2) APP PIPELINE
-// --------------------------
 var app = builder.Build();
 
-// Hata sayfası ayarları
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -35,17 +38,24 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-// wwwroot altındaki css/js/img dosyaları için
 app.UseStaticFiles();
 
 app.UseRouting();
 
+// ✅ sırası önemli
+app.UseAuthentication();
 app.UseAuthorization();
 
-// Default route: Dashboard açılacak
+// ✅ admin seed (umutkartopu)
+using (var scope = app.Services.CreateScope())
+{
+    var auth = scope.ServiceProvider.GetRequiredService<ErpAuthService>();
+    await auth.EnsureAdminAsync();
+}
+
+// ✅ DEFAULT: ilk açılış Login
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Dashboard}/{action=Index}/{id?}");
+    pattern: "{controller=Auth}/{action=Login}/{id?}");
 
 app.Run();

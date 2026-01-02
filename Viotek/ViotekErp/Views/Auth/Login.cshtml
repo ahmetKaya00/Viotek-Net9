@@ -1,0 +1,35 @@
+@{
+    ViewData["Title"] = "Giriş";
+}
+
+<div class="min-h-[calc(100vh-64px)] bg-slate-50 px-4 md:px-6 py-10">
+    <div class="max-w-md mx-auto bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <h1 class="text-xl font-bold text-slate-900">Giriş</h1>
+        <p class="text-xs text-slate-500 mt-1">ERP hesabınla giriş yap.</p>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="mt-4 rounded-xl border border-red-100 bg-red-50 text-red-700 text-xs p-3">
+                @ViewBag.Error
+            </div>
+        }
+
+        <form method="post" class="mt-5 space-y-3">
+            @Html.AntiForgeryToken()
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Kullanıcı Adı</label>
+                <input name="kullaniciAdi" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" />
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Şifre</label>
+                <input type="password" name="sifre" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm" />
+            </div>
+
+            <button class="w-full rounded-xl bg-indigo-600 text-white py-2 text-sm font-semibold hover:bg-indigo-700">
+                Giriş Yap
+            </button>
+        </form>
+    </div>
+</div>

@@ -1,5 +1,6 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @using Microsoft.AspNetCore.Mvc.Rendering
+@using System.Security.Claims
 
 <!DOCTYPE html>
 <html lang="tr">
@@ -7,17 +8,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - ViotekErp</title>
+
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
-    <!-- ✅ Tailwind'e bağlı olmadan mobil hamburger için küçük CSS -->
     <style>
-        /* Mobil davranış: <= 768px */
         @@media (max-width: 768px) {
             .erp-desktop-sidebar { display: none !important; }
             .erp-mobile-menu-btn { display: inline-flex !important; }
         }
 
-        /* Desktop davranış: > 768px */
         @@media (min-width: 769px) {
             .erp-mobile-overlay,
             .erp-mobile-sidebar,
@@ -37,7 +36,7 @@
             top: 0;
             bottom: 0;
             left: 0;
-            width: 16rem; /* 256px */
+            width: 16rem;
             z-index: 50;
             transform: translateX(-100%);
             transition: transform .2s ease;
@@ -47,7 +46,7 @@
         .erp-mobile-overlay.open { display: block; }
 
         .erp-mobile-menu-btn {
-            display: none; /* desktopta görünmesin */
+            display: none;
             align-items: center;
             justify-content: center;
             width: 40px;
@@ -63,17 +62,42 @@
 <body class="bg-slate-100">
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+
+    var isAuth = User?.Identity?.IsAuthenticated ?? false;
+    var role = User?.FindFirst(ClaimTypes.Role)?.Value ?? "";
+    var isAdmin = string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase);
+
+    var displayName =
+        User?.FindFirst("AdSoyad")?.Value ??
+        User?.FindFirst(ClaimTypes.Name)?.Value ??
+        "Kullanıcı";
+
+    string Initials(string s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return "U";
+        var parts = s.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1) return parts[0].Substring(0, 1).ToUpperInvariant();
+        return (parts[0].Substring(0, 1) + parts[^1].Substring(0, 1)).ToUpperInvariant();
+    }
+
+    var avatar = Initials(displayName);
+
+    string NavClass(string ctrl)
+    {
+        var active = string.Equals(currentController, ctrl, StringComparison.OrdinalIgnoreCase);
+        return active
+            ? "flex items-center justify-between w-full px-3 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium"
+            : "flex items-center justify-between w-full px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-800/60 text-sm font-medium transition";
+    }
 }
 
-<div class="min-h-screen flex">
+<div class="min-h-screen flex w-full">
 
-    <!-- ✅ DESKTOP SOL MENÜ (Senin kodun, sadece class ekledim) -->
+    <!-- DESKTOP SOL MENÜ -->
     <aside class="erp-desktop-sidebar w-64 bg-slate-900 text-slate-100 flex flex-col">
         <div class="h-16 flex items-center px-4 border-b border-slate-800">
             <div class="flex items-center gap-2">
-                <div class="w-9 h-9 rounded-2xl bg-indigo-500 flex items-center justify-center text-white font-bold text-lg">
-                    V
-                </div>
+                <div class="w-9 h-9 rounded-2xl bg-indigo-500 flex items-center justify-center text-white font-bold text-lg">V</div>
                 <div class="flex flex-col">
                     <span class="text-sm font-semibold">Viotek ERP</span>
                     <span class="text-[11px] text-slate-400">Yönetim Paneli</span>
@@ -82,66 +106,80 @@
         </div>
 
         <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-6 text-xs">
+            @if (isAdmin)
+            {
+                <div>
+                    <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Genel</p>
+                    <a asp-controller="Dashboard" asp-action="Index" class="@NavClass("Dashboard")">
+                        <div class="flex items-center gap-2"><span>Özet</span></div>
+                    </a>
+                </div>
 
-            <div>
-                <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Genel</p>
-                @{
-                    var isDashboard = string.Equals(currentController, "Dashboard", StringComparison.OrdinalIgnoreCase);
-                    var dashboardClass = isDashboard
-                        ? "flex items-center justify-between w-full px-3 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium"
-                        : "flex items-center justify-between w-full px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-800/60 text-sm font-medium";
-                }
-                <a asp-controller="Dashboard" asp-action="Index" class="@dashboardClass">
-                    <div class="flex items-center gap-2"><span>Özet</span></div>
-                </a>
-            </div>
+                <div>
+                    <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Operasyon</p>
 
-            <div>
-                <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Operasyon</p>
-                @{
-                    var isSiparis = string.Equals(currentController, "Siparisler", StringComparison.OrdinalIgnoreCase);
-                    var siparisClass = isSiparis
-                        ? "flex items-center justify-between w-full px-3 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium"
-                        : "flex items-center justify-between w-full px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-800/60 text-sm font-medium";
-                }
+                    <!-- ✅ Admin Desktop: Servis -->
+                    <a asp-controller="Servis" asp-action="Index" class="@NavClass("Servis")">
+                        <div class="flex items-center gap-2"><span>Servis</span></div>
+                    </a>
 
-                <a asp-controller="Siparisler" asp-action="Index" class="@siparisClass">
-                    <div class="flex items-center gap-2"><span>Siparişler</span></div>
-                </a>
+                    <a asp-controller="Siparisler" asp-action="Index" class="@NavClass("Siparisler")">
+                        <div class="flex items-center gap-2"><span>Siparişler</span></div>
+                    </a>
 
-                <a asp-controller="Stoklar" asp-action="Index"
-                   class="mt-1 flex items-center justify-between w-full px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-800/60 text-sm font-medium transition">
-                    <div class="flex items-center gap-2"><span>Stok Yönetimi</span></div>
-                </a>
+                    <a asp-controller="Stoklar" asp-action="Index" class="@NavClass("Stoklar")">
+                        <div class="flex items-center gap-2"><span>Stok Yönetimi</span></div>
+                    </a>
 
-                <a asp-controller="Irsaliyeler" asp-action="Index"
-                   class="mt-1 flex items-center justify-between w-full px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-800/60 text-sm font-medium transition">
-                    <div class="flex items-center gap-2"><span>İrsaliyeler</span></div>
-                </a>
-            </div>
+                    <a asp-controller="Irsaliyeler" asp-action="Index" class="@NavClass("Irsaliyeler")">
+                        <div class="flex items-center gap-2"><span>İrsaliyeler</span></div>
+                    </a>
+                </div>
 
-            <div>
-                <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Finans</p>
-                <a asp-controller="Gider" asp-action="Index"
-                   class="mt-1 flex items-center justify-between w-full px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-800/60 text-sm font-medium transition">
-                    <div class="flex items-center gap-2"><span>Finans Yönetimi</span></div>
-                </a>
-                <a asp-controller="Kasalar" asp-action="Index"
-   class="mt-1 flex items-center justify-between w-full px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-800/60 text-sm font-medium transition">
-    <div class="flex items-center gap-2">
-        <span>Kasalar</span>
-    </div>
-</a>
-            </div>
+                <div>
+                    <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Finans</p>
+                    <a asp-controller="Gider" asp-action="Index" class="@NavClass("Gider")">
+                        <div class="flex items-center gap-2"><span>Finans Yönetimi</span></div>
+                    </a>
 
-            <div>
-                <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Raporlar</p>
-                <a asp-controller="Raporlar" asp-action="SatisAnaliz"
-                   class="mt-1 flex items-center justify-between w-full px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-800/60 text-sm font-medium transition">
-                    <div class="flex items-center gap-2"><span>Genel Rapor</span></div>
-                </a>
-            </div>
+                    <a asp-controller="Kasalar" asp-action="Index" class="@NavClass("Kasalar")">
+                        <div class="flex items-center gap-2"><span>Kasalar</span></div>
+                    </a>
+                </div>
 
+                <div>
+                    <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Raporlar</p>
+                    <a asp-controller="Raporlar" asp-action="SatisAnaliz" class="@NavClass("Raporlar")">
+                        <div class="flex items-center gap-2"><span>Genel Rapor</span></div>
+                    </a>
+                </div>
+
+                <div>
+                    <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Admin</p>
+                    <a asp-controller="Admin" asp-action="Users" class="@NavClass("Admin")">
+                        <div class="flex items-center gap-2"><span>Kullanıcı Yönetimi</span></div>
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div>
+                    <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Operasyon</p>
+
+                    <!-- ✅ User Desktop: Servis (SENDE YOKTU) -->
+                    <a asp-controller="Servis" asp-action="Index" class="@NavClass("Servis")">
+                        <div class="flex items-center gap-2"><span>Servis</span></div>
+                    </a>
+
+                    <a asp-controller="Siparisler" asp-action="Index" class="@NavClass("Siparisler")">
+                        <div class="flex items-center gap-2"><span>Siparişler</span></div>
+                    </a>
+
+                    <a asp-controller="Stoklar" asp-action="Index" class="@NavClass("Stoklar")">
+                        <div class="flex items-center gap-2"><span>Stok Yönetimi</span></div>
+                    </a>
+                </div>
+            }
         </nav>
 
         <div class="px-4 py-3 border-t border-slate-800 text-[11px] text-slate-500">
@@ -149,7 +187,7 @@
         </div>
     </aside>
 
-    <!-- ✅ MOBİL OVERLAY + MOBİL SIDEBAR (aynı menü) -->
+    <!-- MOBİL OVERLAY + SIDEBAR -->
     <div id="mOverlay" class="erp-mobile-overlay"></div>
 
     <aside id="mSidebar" class="erp-mobile-sidebar bg-slate-900 text-slate-100 flex flex-col">
@@ -164,47 +202,75 @@
         </div>
 
         <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-6 text-xs">
-            <div>
-                <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Genel</p>
-                <a asp-controller="Dashboard" asp-action="Index"
-                   class="flex items-center justify-between w-full px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-800/60 text-sm font-medium">
-                    <div class="flex items-center gap-2"><span>Özet</span></div>
-                </a>
-            </div>
+            @if (isAdmin)
+            {
+                <div>
+                    <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Genel</p>
+                    <a asp-controller="Dashboard" asp-action="Index" class="@NavClass("Dashboard")">
+                        <div class="flex items-center gap-2"><span>Özet</span></div>
+                    </a>
+                </div>
 
-            <div>
-                <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Operasyon</p>
-                <a asp-controller="Siparisler" asp-action="Index"
-                   class="flex items-center justify-between w-full px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-800/60 text-sm font-medium">
-                    <div class="flex items-center gap-2"><span>Siparişler</span></div>
-                </a>
+                <div>
+                    <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Operasyon</p>
 
-                <a asp-controller="Stoklar" asp-action="Index"
-                   class="mt-1 flex items-center justify-between w-full px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-800/60 text-sm font-medium transition">
-                    <div class="flex items-center gap-2"><span>Stok Yönetimi</span></div>
-                </a>
+                    <!-- ✅ Admin Mobile: Servis (SENDE YOKTU) -->
+                    <a asp-controller="Servis" asp-action="Index" class="@NavClass("Servis")">
+                        <div class="flex items-center gap-2"><span>Servis</span></div>
+                    </a>
 
-                <a asp-controller="Irsaliyeler" asp-action="Index"
-                   class="mt-1 flex items-center justify-between w-full px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-800/60 text-sm font-medium transition">
-                    <div class="flex items-center gap-2"><span>İrsaliyeler</span></div>
-                </a>
-            </div>
+                    <a asp-controller="Siparisler" asp-action="Index" class="@NavClass("Siparisler")">
+                        <div class="flex items-center gap-2"><span>Siparişler</span></div>
+                    </a>
+                    <a asp-controller="Stoklar" asp-action="Index" class="@NavClass("Stoklar")">
+                        <div class="flex items-center gap-2"><span>Stok Yönetimi</span></div>
+                    </a>
+                    <a asp-controller="Irsaliyeler" asp-action="Index" class="@NavClass("Irsaliyeler")">
+                        <div class="flex items-center gap-2"><span>İrsaliyeler</span></div>
+                    </a>
+                </div>
 
-            <div>
-                <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Finans</p>
-                <a asp-controller="Gider" asp-action="Index"
-                   class="mt-1 flex items-center justify-between w-full px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-800/60 text-sm font-medium transition">
-                    <div class="flex items-center gap-2"><span>Finans Yönetimi</span></div>
-                </a>
-            </div>
+                <div>
+                    <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Finans</p>
+                    <a asp-controller="Gider" asp-action="Index" class="@NavClass("Gider")">
+                        <div class="flex items-center gap-2"><span>Finans Yönetimi</span></div>
+                    </a>
+                    <a asp-controller="Kasalar" asp-action="Index" class="@NavClass("Kasalar")">
+                        <div class="flex items-center gap-2"><span>Kasalar</span></div>
+                    </a>
+                </div>
 
-            <div>
-                <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Raporlar</p>
-                <a asp-controller="Raporlar" asp-action="SatisAnaliz"
-                   class="mt-1 flex items-center justify-between w-full px-3 py-2 rounded-xl text-slate-200 hover:bg-slate-800/60 text-sm font-medium transition">
-                    <div class="flex items-center gap-2"><span>Genel Rapor</span></div>
-                </a>
-            </div>
+                <div>
+                    <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Raporlar</p>
+                    <a asp-controller="Raporlar" asp-action="SatisAnaliz" class="@NavClass("Raporlar")">
+                        <div class="flex items-center gap-2"><span>Genel Rapor</span></div>
+                    </a>
+                </div>
+
+                <div>
+                    <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Admin</p>
+                    <a asp-controller="Admin" asp-action="Users" class="@NavClass("Admin")">
+                        <div class="flex items-center gap-2"><span>Kullanıcı Yönetimi</span></div>
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div>
+                    <p class="px-2 mb-2 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">Operasyon</p>
+
+                    <a asp-controller="Servis" asp-action="Index" class="@NavClass("Servis")">
+                        <div class="flex items-center gap-2"><span>Servis</span></div>
+                    </a>
+
+                    <a asp-controller="Siparisler" asp-action="Index" class="@NavClass("Siparisler")">
+                        <div class="flex items-center gap-2"><span>Siparişler</span></div>
+                    </a>
+                    <a asp-controller="Stoklar" asp-action="Index" class="@NavClass("Stoklar")">
+                        <div class="flex items-center gap-2"><span>Stok Yönetimi</span></div>
+                    </a>
+                </div>
+            }
         </nav>
 
         <div class="px-4 py-3 border-t border-slate-800 text-[11px] text-slate-500">
@@ -213,33 +279,35 @@
     </aside>
 
     <!-- SAĞ ANA ALAN -->
-    <main class="flex-1 flex flex-col">
+    <main class="flex-1 flex flex-col w-full min-w-0 overflow-x-hidden">
 
         <!-- ÜST BAR -->
         <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-end px-6 gap-3 relative">
-
-            <!-- ✅ MOBİL HAMBURGER -->
             <button id="mMenuBtn" type="button" class="erp-mobile-menu-btn absolute left-3" aria-label="Menü">
                 ☰
             </button>
 
-            <button type="button"
-                    class="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 text-xs font-medium text-indigo-700 border border-indigo-100">
-                ⚡ Yapay Zeka Asistanı
-            </button>
+            @if (isAuth)
+            {
+                <a asp-controller="Auth" asp-action="Logout"
+                   class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition">
+                    Çıkış Yap
+                </a>
+            }
 
             <div class="flex items-center gap-2">
                 <div class="text-right">
-                    <div class="text-xs font-semibold text-slate-700">Demo Admin</div>
-                    <div class="text-[11px] text-slate-400">Yönetici</div>
+                    <div class="text-xs font-semibold text-slate-700">@displayName</div>
+                    <div class="text-[11px] text-slate-400">@(isAdmin ? "Yönetici" : "Kullanıcı")</div>
                 </div>
                 <div class="w-8 h-8 rounded-full bg-indigo-600 text-white text-xs flex items-center justify-center">
-                    DA
+                    @avatar
                 </div>
             </div>
         </header>
 
-        <section class="flex-1">
+        <!-- ✅ burası kritik -->
+        <section class="flex-1 w-full min-w-0 overflow-x-hidden">
             @RenderBody()
         </section>
     </main>
@@ -265,13 +333,11 @@
         btn && btn.addEventListener("click", openMenu);
         overlay && overlay.addEventListener("click", closeMenu);
 
-        // Menüden bir linke tıklayınca kapansın
         sidebar && sidebar.addEventListener("click", function (e) {
             const a = e.target.closest("a");
             if (a) closeMenu();
         });
 
-        // ESC ile kapatma
         document.addEventListener("keydown", function (e) {
             if (e.key === "Escape") closeMenu();
         });
