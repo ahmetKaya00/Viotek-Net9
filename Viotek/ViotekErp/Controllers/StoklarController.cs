@@ -69,46 +69,40 @@ namespace ViotekErp.Controllers
             // Sayfada görünen stok kodları
             var stokKodList = list.Select(x => x.m.StoKod).Distinct().ToList();
 
-            // Bu stokların hareketleri (detay & son fiyat hesaplamak için)
-            var hareketler = await _db.StokHareketleri
-                .Where(h => h.StokKod != null && stokKodList.Contains(h.StokKod))
+            // ----------------------------------------------------------
+            // ✅ 1) Fiyat: STOKDETAY'dan toplu çek
+            // ----------------------------------------------------------
+            var fiyatRows = await _db.StokDetay
+                .AsNoTracking()
+                .Where(x => stokKodList.Contains(x.StokKodu))
+                .Select(x => new { x.StokKodu, x.Fiyat, x.FiyatDoviz })
                 .ToListAsync();
 
-            var hareketGrup = hareketler
+            var fiyatMap = fiyatRows.ToDictionary(x => x.StokKodu, x => x);
+
+            // ----------------------------------------------------------
+            // ✅ 2) Son hareket tarihi: STOK_HAREKETLERI'nden toplu çek
+            // (Fiyat değil, sadece tarih için)
+            // ----------------------------------------------------------
+            var sonHareketTarihleri = await _db.StokHareketleri
+                .AsNoTracking()
+                .Where(h => h.StokKod != null && stokKodList.Contains(h.StokKod))
                 .GroupBy(h => h.StokKod!)
-                .ToDictionary(
-                    g => g.Key,
-                    g =>
-                    {
-                        var sonTarih = g.Max(x => x.SthTarih);
+                .Select(g => new
+                {
+                    StokKod = g.Key,
+                    SonTarih = g.Max(x => x.SthTarih)
+                })
+                .ToListAsync();
 
-                        // Son satış fiyatı: tarihine göre en son tutar/miktar
-                        var sonSatis = g
-                            .Where(x =>
-                                x.Tutar.HasValue &&
-                                x.Miktar.HasValue &&
-                                x.Miktar.Value != 0)
-                            .OrderByDescending(x => x.SthTarih)
-                            .FirstOrDefault();
-
-                        double? sonFiyat = null;
-                        if (sonSatis != null)
-                        {
-                            sonFiyat = sonSatis.Tutar!.Value / sonSatis.Miktar!.Value;
-                        }
-
-                        return new
-                        {
-                            SonTarih = sonTarih,
-                            SonFiyat = sonFiyat
-                        };
-                    });
+            var tarihMap = sonHareketTarihleri.ToDictionary(x => x.StokKod, x => x.SonTarih);
 
             var items = new List<StokListItemDto>();
 
             foreach (var row in list)
             {
-                hareketGrup.TryGetValue(row.m.StoKod, out var hInfo);
+                fiyatMap.TryGetValue(row.m.StoKod, out var fInfo);
+                tarihMap.TryGetValue(row.m.StoKod, out var sonTarih);
 
                 items.Add(new StokListItemDto
                 {
@@ -117,8 +111,13 @@ namespace ViotekErp.Controllers
                     MevcutMiktar = row.m.MevcutMiktar,
                     MarkaKodu = row.s.MarkaKodu,
                     KategoriKodu = row.s.KategoriKodu,
-                    SonHareketTarihi = hInfo?.SonTarih,
-                    SonSatisFiyati = hInfo?.SonFiyat
+
+                    // ✅ Tarih hareketten
+                    SonHareketTarihi = sonTarih,
+
+                    // ✅ Fiyat STOKDETAY'dan
+                    SonSatisFiyati = fInfo?.Fiyat,
+                    StandartMaliyet = row.s.StandartMaliyet,
                 });
             }
 
@@ -158,6 +157,15 @@ namespace ViotekErp.Controllers
             if (stokRow == null)
                 return NotFound("Stok bulunamadı.");
 
+            // ----------------------------------------------------------
+            // ✅ Fiyat: STOKDETAY'dan çek (msg_S_0006)
+            // ----------------------------------------------------------
+            var fiyatDetay = await _db.StokDetay
+                .AsNoTracking()
+                .Where(x => x.StokKodu == stokKod)
+                .Select(x => (double?)x.Fiyat)
+                .FirstOrDefaultAsync();
+
             // Hareketler (son 50)
             var hareketler = await _db.StokHareketleri
                 .AsNoTracking()
@@ -168,24 +176,9 @@ namespace ViotekErp.Controllers
                 .ToListAsync();
 
             DateTime? sonTarih = null;
-            double? sonFiyat = null;
-
             if (hareketler.Any())
             {
                 sonTarih = hareketler.Max(x => x.SthTarih);
-
-                var sonSatis = hareketler
-                    .Where(x =>
-                        x.Tutar.HasValue &&
-                        x.Miktar.HasValue &&
-                        x.Miktar.Value != 0)
-                    .OrderByDescending(x => x.SthTarih)
-                    .FirstOrDefault();
-
-                if (sonSatis != null)
-                {
-                    sonFiyat = sonSatis.Tutar!.Value / sonSatis.Miktar!.Value;
-                }
             }
 
             // ----------------------------------------------------------
@@ -279,7 +272,6 @@ namespace ViotekErp.Controllers
                     PlasiyerKodu = h.PlasiyerKodu,
                     PlasiyerAd = plasiyerAd,
 
-                    // DTO’da kalsın (view’de göstermeyeceksin)
                     GirisDepoNo = h.GirisDepoNo,
                     CikisDepoNo = h.CikisDepoNo
                 };
@@ -293,7 +285,11 @@ namespace ViotekErp.Controllers
                 MarkaKodu = stokRow.s.MarkaKodu,
                 KategoriKodu = stokRow.s.KategoriKodu,
                 SonHareketTarihi = sonTarih,
-                SonSatisFiyati = sonFiyat,
+
+                // ✅ Fiyat: STOKDETAY
+                SonSatisFiyati = fiyatDetay,
+                StandartMaliyet = stokRow.s.StandartMaliyet,
+
                 Hareketler = dtos
             };
 

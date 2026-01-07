@@ -1,3 +1,4 @@
+using ViotekErp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -180,94 +181,94 @@ namespace ViotekErp.Controllers
 
             return PartialView("_ServisListPartial", vm);
         }
-// =========================
-// Stage Updates (ViotekAppDB)
-// =========================
+        // =========================
+        // Stage Updates (ViotekAppDB)
+        // =========================
 
-[HttpPost]
-public async Task<IActionResult> SetTedarikciyeGonder(int servisId, DateTime? gonderimTarih, string? tedCariKod, string? aciklama)
-{
-    var currentUser = await GetCurrentUserAsync();
-    if (currentUser == null) return Unauthorized();
+        [HttpPost]
+        public async Task<IActionResult> SetTedarikciyeGonder(int servisId, DateTime? gonderimTarih, string? tedCariKod, string? aciklama)
+        {
+            var currentUser = await GetCurrentUserAsync();
+            if (currentUser == null) return Unauthorized();
 
-    var row = await _servisDb.Servisler.FirstOrDefaultAsync(x => x.ServisId == servisId);
-    if (row == null) return NotFound("Servis kaydı bulunamadı.");
+            var row = await _servisDb.Servisler.FirstOrDefaultAsync(x => x.ServisId == servisId);
+            if (row == null) return NotFound("Servis kaydı bulunamadı.");
 
-    row.TedGonderimTarih = (gonderimTarih ?? DateTime.Today).Date;
-    row.TedGonderimCariKod = tedCariKod;
-    row.TedGonderimAciklama = aciklama;
+            row.TedGonderimTarih = (gonderimTarih ?? DateTime.Today).Date;
+            row.TedGonderimCariKod = tedCariKod;
+            row.TedGonderimAciklama = aciklama;
 
-    row.ServisDurum = 2;
-    row.UpdateId = currentUser.Id;
-    row.UpdateDate = DateTime.Now;
+            row.ServisDurum = 2;
+            row.UpdateId = currentUser.Id;
+            row.UpdateDate = DateTime.Now;
 
-    await _servisDb.SaveChangesAsync();
-    return Ok(new { ok = true });
-}
+            await _servisDb.SaveChangesAsync();
+            return Ok(new { ok = true });
+        }
 
-[HttpPost]
-public async Task<IActionResult> SetTedarikcidenGeldi(int servisId, DateTime? alimTarih, string? yapilanIslem, string? yeniSeriNumara, string? teslimAlan)
-{
-    var currentUser = await GetCurrentUserAsync();
-    if (currentUser == null) return Unauthorized();
+        [HttpPost]
+        public async Task<IActionResult> SetTedarikcidenGeldi(int servisId, DateTime? alimTarih, string? yapilanIslem, string? yeniSeriNumara, string? teslimAlan)
+        {
+            var currentUser = await GetCurrentUserAsync();
+            if (currentUser == null) return Unauthorized();
 
-    var row = await _servisDb.Servisler.FirstOrDefaultAsync(x => x.ServisId == servisId);
-    if (row == null) return NotFound("Servis kaydı bulunamadı.");
+            var row = await _servisDb.Servisler.FirstOrDefaultAsync(x => x.ServisId == servisId);
+            if (row == null) return NotFound("Servis kaydı bulunamadı.");
 
-    row.TedAlimTarih = (alimTarih ?? DateTime.Today).Date;
-    row.TedAlimYapilanIslem = yapilanIslem;
-    row.TedAlimSeriNumara = yeniSeriNumara;
-    row.TedAlimTeslimAlan = teslimAlan;
+            row.TedAlimTarih = (alimTarih ?? DateTime.Today).Date;
+            row.TedAlimYapilanIslem = yapilanIslem;
+            row.TedAlimSeriNumara = yeniSeriNumara;
+            row.TedAlimTeslimAlan = teslimAlan;
 
-    row.ServisDurum = 3;
-    row.UpdateId = currentUser.Id;
-    row.UpdateDate = DateTime.Now;
+            row.ServisDurum = 3;
+            row.UpdateId = currentUser.Id;
+            row.UpdateDate = DateTime.Now;
 
-    await _servisDb.SaveChangesAsync();
-    return Ok(new { ok = true });
-}
+            await _servisDb.SaveChangesAsync();
+            return Ok(new { ok = true });
+        }
 
-[HttpPost]
-public async Task<IActionResult> SetMusteriyeTeslim(int servisId, DateTime? teslimTarih, string? yapilanIslem, string? yeniSeriNumara, string? teslimEden, string? teslimAlan)
-{
-    var currentUser = await GetCurrentUserAsync();
-    if (currentUser == null) return Unauthorized();
+        [HttpPost]
+        public async Task<IActionResult> SetMusteriyeTeslim(int servisId, DateTime? teslimTarih, string? yapilanIslem, string? yeniSeriNumara, string? teslimEden, string? teslimAlan)
+        {
+            var currentUser = await GetCurrentUserAsync();
+            if (currentUser == null) return Unauthorized();
 
-    var row = await _servisDb.Servisler.FirstOrDefaultAsync(x => x.ServisId == servisId);
-    if (row == null) return NotFound("Servis kaydı bulunamadı.");
+            var row = await _servisDb.Servisler.FirstOrDefaultAsync(x => x.ServisId == servisId);
+            if (row == null) return NotFound("Servis kaydı bulunamadı.");
 
-    row.MusTeslimTarih = (teslimTarih ?? DateTime.Today).Date;
-    row.MusYapilanIslem = yapilanIslem;
-    row.MusSeriNumara = yeniSeriNumara;
-    row.MusTeslimEden = teslimEden;
-    row.MusTeslimAlan = teslimAlan;
+            row.MusTeslimTarih = (teslimTarih ?? DateTime.Today).Date;
+            row.MusYapilanIslem = yapilanIslem;
+            row.MusSeriNumara = yeniSeriNumara;
+            row.MusTeslimEden = teslimEden;
+            row.MusTeslimAlan = teslimAlan;
 
-    row.ServisDurum = 4;
-    row.ServisTamamlandi = true;
+            row.ServisDurum = 4;
+            row.ServisTamamlandi = true;
 
-    row.UpdateId = currentUser.Id;
-    row.UpdateDate = DateTime.Now;
+            row.UpdateId = currentUser.Id;
+            row.UpdateDate = DateTime.Now;
 
-    await _servisDb.SaveChangesAsync();
-    return Ok(new { ok = true });
-}
+            await _servisDb.SaveChangesAsync();
+            return Ok(new { ok = true });
+        }
 
-[HttpPost]
-public async Task<IActionResult> SetAktif(int servisId, bool aktif)
-{
-    var currentUser = await GetCurrentUserAsync();
-    if (currentUser == null) return Unauthorized();
+        [HttpPost]
+        public async Task<IActionResult> SetAktif(int servisId, bool aktif)
+        {
+            var currentUser = await GetCurrentUserAsync();
+            if (currentUser == null) return Unauthorized();
 
-    var row = await _servisDb.Servisler.FirstOrDefaultAsync(x => x.ServisId == servisId);
-    if (row == null) return NotFound("Servis kaydı bulunamadı.");
+            var row = await _servisDb.Servisler.FirstOrDefaultAsync(x => x.ServisId == servisId);
+            if (row == null) return NotFound("Servis kaydı bulunamadı.");
 
-    row.ServisAktif = aktif;
-    row.UpdateId = currentUser.Id;
-    row.UpdateDate = DateTime.Now;
+            row.ServisAktif = aktif;
+            row.UpdateId = currentUser.Id;
+            row.UpdateDate = DateTime.Now;
 
-    await _servisDb.SaveChangesAsync();
-    return Ok(new { ok = true });
-}
+            await _servisDb.SaveChangesAsync();
+            return Ok(new { ok = true });
+        }
         // =========================
         // MODAL
         // =========================
@@ -383,7 +384,7 @@ public async Task<IActionResult> SetAktif(int servisId, bool aktif)
                 }
 
                 await _servisDb.SaveChangesAsync();
-                return Ok(new { ok = true });
+                return Ok(new { ok = true, id = vm.Item.ServisId });
             }
             catch (DbUpdateException ex)
             {
@@ -393,6 +394,54 @@ public async Task<IActionResult> SetAktif(int servisId, bool aktif)
             {
                 return StatusCode(500, "Sunucu hata: " + ex.Message);
             }
+        }
+
+        // =========================
+        // PDF (Teslim Formu)
+        // =========================
+        [HttpGet]
+        public async Task<IActionResult> TeslimFormPdf(int id, [FromServices] ViotekErp.Services.ServisPdfService pdfService)
+        {
+            var row = await _servisDb.Servisler.AsNoTracking().FirstOrDefaultAsync(x => x.ServisId == id);
+            if (row == null) return NotFound("Servis kaydı bulunamadı.");
+
+            // MikroDB’den müşteri ünvanı ve ürün adını çek
+            var cariUnvan = await _mikro.CariHesaplar.AsNoTracking()
+                .Where(c => c.CariKod == row.ServisCariKod)
+                .Select(c => c.Unvan1)
+                .FirstOrDefaultAsync();
+
+            var stokIsim = await _mikro.Stoklar.AsNoTracking()
+                .Where(s => s.StoKod == row.ServisStokKod)
+                .Select(s => s.StoIsim)
+                .FirstOrDefaultAsync();
+
+            var garantiText = (row.ServisGaranti.HasValue && row.ServisGaranti.Value > 0)
+                ? $"Garanti Var ({row.ServisGaranti.Value} Ay)"
+                : "Garanti Yok";
+
+            // Form numarası: VIO-SRV-0001 gibi
+            var formNo = $"VIO-SRV-{id:D4}";
+
+            var dto = new ServisPdfDto(
+                FormNo: formNo,
+                TeslimTarihi: row.ServisTarih ?? DateTime.Today,
+                MusteriUnvan: !string.IsNullOrWhiteSpace(cariUnvan) ? cariUnvan! : (row.ServisCariKod ?? "-"),
+                CihazAdi: !string.IsNullOrWhiteSpace(stokIsim) ? stokIsim! : (row.ServisStokKod ?? "-"),
+                SeriNumara: row.ServisSeriNumara ?? "-",
+                SatinalmaTarihi: row.ServisSatinalmaTarih,
+                GarantiText: garantiText,
+                ArizaAciklama: row.ServisArizaAciklama ?? "-",
+                TeslimEden: row.ServisTeslimEden ?? "-",
+                TeslimAlan: row.ServisTeslimAlan ?? "-",
+                FooterAdres: "Zeki Ayan, H.Okan Merzeci Blv Toros Apt No: 316 B, 33110 Toroslar/Mersin",
+                FooterTelefon: "Telefon : 0324 988 0063",
+                FooterEmail: "bilgi@viotek.com.tr"
+            );
+
+            var bytes = pdfService.BuildTeslimFormPdf(dto);
+            var fileName = $"{formNo}.pdf";
+            return File(bytes, "application/pdf", fileName);
         }
 
         // =========================

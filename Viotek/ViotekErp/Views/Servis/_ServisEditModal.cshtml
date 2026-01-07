@@ -144,6 +144,7 @@
         <div class="flex gap-2 svc-header-actions">
             <button type="button" id="svcSaveBtn" class="svc-btn svc-btn-primary">Kaydet</button>
             <button type="button" id="svcSaveCloseBtn" class="svc-btn svc-btn-soft">Kaydet & Kapat</button>
+            <button type="button" id="svcPdfBtn" class="svc-btn svc-btn-soft" @(isNew ? "disabled" : "")>PDF</button>
         </div>
     </div>
 
@@ -559,7 +560,7 @@
 
     // ---------- Save ----------
     function enableStageButtons() {
-      ["#btnSetTedarikciyeGonder", "#btnSetTedarikcidenGeldi", "#btnSetMusteriyeTeslim", "#btnToggleAktif"]
+      ["#btnSetTedarikciyeGonder", "#btnSetTedarikcidenGeldi", "#btnSetMusteriyeTeslim", "#btnToggleAktif", "#svcPdfBtn"]
         .forEach(sel => {
           const b = $(sel);
           if (b) b.removeAttribute("disabled");
@@ -568,6 +569,7 @@
 
     async function save(closeAfter) {
       try {
+        const wasNew = isNew;
         const result = await postForm(`@Url.Action("Save","Servis")`, formData());
 
         // Save result should include id
@@ -577,6 +579,11 @@
           const hid = root.querySelector('input[name="Item.ServisId"]');
           if (hid) hid.value = String(servisId);
           enableStageButtons();
+          // ✅ İlk kez oluşturulduysa PDF'yi otomatik aç
+          if (wasNew) {
+            const pdfUrl = `@Url.Action("TeslimFormPdf","Servis")?id=${encodeURIComponent(servisId)}`;
+            window.open(pdfUrl, "_blank", "noopener,noreferrer");
+          }
         }
 
         ok("Kaydedildi.");
@@ -591,6 +598,12 @@
     const saveCloseBtn = $("#svcSaveCloseBtn");
     if (saveBtn) saveBtn.onclick = () => save(false);
     if (saveCloseBtn) saveCloseBtn.onclick = () => save(true);
+    const pdfBtn = $("#svcPdfBtn");
+    if (pdfBtn) pdfBtn.onclick = () => {
+      if (isNew || !servisId || servisId <= 0) { err("Önce kaydı kaydetmelisin (ServisId oluşmalı)."); return; }
+      const pdfUrl = `@Url.Action("TeslimFormPdf","Servis")?id=${encodeURIComponent(servisId)}`;
+      window.open(pdfUrl, "_blank", "noopener,noreferrer");
+    };
 
     // ---------- Toggle garanti ----------
     const garVarBtn = $("#garVarBtn");

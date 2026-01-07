@@ -30,12 +30,25 @@ namespace ViotekErp.Data
         public DbSet<TblServis> Servisler { get; set; } = default!;
 
         public DbSet<GiderHareket> GiderHareketler { get; set; } = null!;
-                public DbSet<KasaYonetimRow> KasalarYonetim => Set<KasaYonetimRow>();
+        public DbSet<KasaYonetimRow> KasalarYonetim => Set<KasaYonetimRow>();
+        public DbSet<StokDetayRow> StokDetay { get; set; } = default!;
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            
+            // STOKDETAY (VIEW) - Fiyat için
+            modelBuilder.Entity<StokDetayRow>(e =>
+            {
+                e.HasNoKey();
+                e.ToView("STOKDETAY");
+
+                e.Property(x => x.MsgS1588).HasColumnName("#msg_S_1588"); // sto_Guid
+                e.Property(x => x.StokKodu).HasColumnName("msg_S_0001");
+                e.Property(x => x.StokIsmi).HasColumnName("msg_S_0002");
+                e.Property(x => x.Fiyat).HasColumnName("msg_S_0006");
+                e.Property(x => x.FiyatDoviz).HasColumnName("msg_S_1693");
+            });
+
             modelBuilder.Entity<KasaYonetimRow>(entity =>
             {
                 entity.ToView("KASALAR_YONETIM");
@@ -73,13 +86,13 @@ namespace ViotekErp.Data
         e.Property(x => x.MsgS1165).HasColumnName("msg_S_1165");
         e.Property(x => x.MsgS1166).HasColumnName("msg_S_1166");
     });
-    modelBuilder.Entity<erp_kullanici>(e =>
-            {
-                e.HasKey(x => x.Id);
-                e.HasIndex(x => x.KullaniciAdi).IsUnique();
-                e.Property(x => x.Rol).HasDefaultValue("User");
-                e.Property(x => x.AktifMi).HasDefaultValue(true);
-            });
+            modelBuilder.Entity<erp_kullanici>(e =>
+                    {
+                        e.HasKey(x => x.Id);
+                        e.HasIndex(x => x.KullaniciAdi).IsUnique();
+                        e.Property(x => x.Rol).HasDefaultValue("User");
+                        e.Property(x => x.AktifMi).HasDefaultValue(true);
+                    });
 
             modelBuilder.Entity<SorumluAd>()
                         .HasNoKey()
@@ -99,6 +112,7 @@ namespace ViotekErp.Data
                 e.Property(x => x.StoIsim).HasColumnName("sto_isim");
                 e.Property(x => x.MarkaKodu).HasColumnName("sto_marka_kodu");
                 e.Property(x => x.KategoriKodu).HasColumnName("sto_kategori_kodu");
+                e.Property(x => x.StandartMaliyet).HasColumnName("sto_standartmaliyet");
             });
 
             // VW_STOK_MEVCUT (VIEW)

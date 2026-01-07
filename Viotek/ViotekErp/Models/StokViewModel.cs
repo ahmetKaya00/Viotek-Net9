@@ -10,6 +10,17 @@ namespace ViotekErp.Models
         public string? StoIsim { get; set; }
         public string? MarkaKodu { get; set; }
         public string? KategoriKodu { get; set; }
+            public double? StandartMaliyet { get; set; }   // sto_standartmaliyet
+
+    }
+    // STOKDETAY view'i için model (fiyat kaynağı)
+    public class StokDetayRow
+    {
+        public Guid MsgS1588 { get; set; }          // #msg_S_1588  (sto_Guid)
+        public string StokKodu { get; set; } = "";  // msg_S_0001   (sto_kod)
+        public string? StokIsmi { get; set; }       // msg_S_0002   (sto_isim)
+        public double Fiyat { get; set; }           // msg_S_0006   (sfiyat_fiyati)
+        public string? FiyatDoviz { get; set; }     // msg_S_1693   (Kur_adi)
     }
 
     // VW_STOK_MEVCUT view'i için model
@@ -48,6 +59,7 @@ namespace ViotekErp.Models
         public string? MarkaKodu { get; set; }
         public string? KategoriKodu { get; set; }
         public double? SonSatisFiyati { get; set; }
+        public double? StandartMaliyet { get; set; }
     }
 
     // Liste ViewModel
@@ -79,6 +91,7 @@ namespace ViotekErp.Models
         public double? SonSatisFiyati { get; set; }
 
         public List<StokHareketDetayDto> Hareketler { get; set; } = new();
+        public double? StandartMaliyet { get; set; }
     }
 
     public class StokHareketDetayDto
